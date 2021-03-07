@@ -12,26 +12,34 @@
     <input type = 'text' id = 'txtGameId'>
     <div id='gamesList'></div>
     <button id = 'btnDice'>Throw dice</button>
+    <button id = 'endTurn'>End turn</button>
     <div id  = 'divPlayers'></div>
+    <div id= "tegels"></div>
+    <hr>
     <div id  = 'divBoard'></div>
     <div id = 'totaal'></div>
+    <div id="selectedDice"></div>
 
     <script>
         //HTML elements
         let clientId = null;
         let gameId = null;
         let playerColor = null;
+        let overgebleven = null;
 
         let HOST = location.origin.replace(/^http/, 'ws')
         let ws = new WebSocket(HOST);
         const btnCreate = document.getElementById("btnCreate");
         const btnJoin = document.getElementById("btnJoin");
         const txtGameId = document.getElementById("txtGameId");
+        const tegels = document.getElementById("tegels");
         const divPlayers = document.getElementById("divPlayers");
         const divBoard = document.getElementById("divBoard");
         const gamesList = document.getElementById("gamesList")
         const btnDice = document.getElementById("btnDice");
+        const endTurn = document.getElementById("endTurn");
         const btnTotal = document.getElementById("totaal");
+        const selectedDice = document.getElementById("selectedDice")
     
         //wiring events
         btnJoin.addEventListener("click", e => {
@@ -62,8 +70,7 @@
             const payLoad = {
                 "method": "dice",
                 "clientId": clientId,
-                "gameId": gameId,
-                "number" : 8
+                "gameId": gameId
             }
             ws.send(JSON.stringify(payLoad));
         })
@@ -82,6 +89,7 @@
             //create
             if (response.method === "create"){
                 gameId = response.game.id;
+                overgebleven = response.game.number
                 games = Object.keys(response.games)
                 for(let i = 0; i< games.length; i++){
                     const g = document.createElement("div");
@@ -95,14 +103,20 @@
 
             //update
             if (response.method === "update"){
-                //{1: "red", 1}
                 if (!response.game.state) return;
-                if(response.game.state["currentPlayer"] != clientId ){
+                // if(response.game.state["currentPlayer"] != clientId ){
+                //     btnDice.disabled = true;
+                // } else {
+                //     btnDice.disabled = false;
+                // }
+                if(response.game.state["diceThrown"] === "yes" ){
                     btnDice.disabled = true;
                 } else {
                     btnDice.disabled = false;
                 }
                 const resultaten = response.game.state["results"]
+                const selectedResults = response.game.state["selectedResults"] || []
+                overgebleven = response.game.state["number"]
                 while(divBoard.firstChild)
                     divBoard.removeChild (divBoard.firstChild)
                 for(let i = 0; i <resultaten.length; i++ ) {
@@ -111,24 +125,62 @@
                     b.tag = i+1
                     waarde = resultaten[i]
                     b.textContent = waarde
-                    b.style.width = "150px"
-                    b.style.height = "150px"
+                    b.value = waarde
+                    let total = response.game.state["total"] || 0
+                    if(selectedResults){
+                        if(selectedResults.includes(waarde)){
+                            b.disabled = true;
+                        }
+                    }
+                    if(selectedResults.length > 0){
+                     total = selectedResults.reduce((a, b) => a + b)
+                     btnTotal.textContent = total
+                    }
+                    b.style.width = "100px"
+                    b.style.height = "100px"
+                     b.addEventListener("click", e => {
+                        const payLoad = {
+                            "method": "selectDice",
+                            "clientId": clientId,
+                            "gameId": gameId,
+                            "selectedValue": b.value,
+                            "results" : resultaten,
+                            "number" : overgebleven,
+                            "selectedResults" : selectedResults,
+                            "total" : total
+                        }
+                        ws.send(JSON.stringify(payLoad))
+                    })
                     divBoard.appendChild(b);
-                }
-                btnTotal.textContent = resultaten.reduce((a, b) => a + b)
-                // for(const b of Object.keys(response.game.state))
-                // {
-                //     const color = response.game.state[b];
-                //     const ballObject = document.getElementById("ball" + b);
-                //     ballObject.style.backgroundColor = color
-                // }
 
-            }
+                    for(let x of tegels.children){
+                        if(total === parseInt(x.value)){
+                            x.disabled = false;
+                        } else{
+                            x.disabled = true;
+                        }
+                    }
+                }
+                
+                
+                while(selectedDice.firstChild)
+                    selectedDice.removeChild (selectedDice.firstChild)
+                if(selectedResults){
+                for(let i = 0; i < selectedResults.length; i++){
+                    const b = document.createElement("button");
+                    waarde = selectedResults[i]
+                    b.textContent = waarde
+                    b.value = waarde
+                    b.style.width = "100px"
+                    b.style.height = "100px"
+                    selectedDice.appendChild(b);
+                }
+            }}
 
             //join
             if (response.method === "join"){
                 const game = response.game;
-
+                const speeltegels = response.tegels
                 while(divPlayers.firstChild)
                     divPlayers.removeChild (divPlayers.firstChild)
 
@@ -143,34 +195,16 @@
                     if (c.clientId === clientId) playerColor = c.color;
                 })
 
-                while(divBoard.firstChild)
-                divBoard.removeChild (divBoard.firstChild)
+                speeltegels.forEach(e=> {
+                    const b = document.createElement("button");
+                    b.style.width = "60px"
+                    b.style.height = "60px"
+                    b.value = e
+                    b.textContent = e
+                    b.disabled = true
+                    tegels.appendChild(b)
+                })
                 
-                // for (let i = 0; i < 8; i++){
-                //     const b = document.createElement("button");
-                //     b.id = "ball" + (i +1);
-                //     b.tag = i+1
-                //     waarde = rollDice()
-                //     b.textContent = waarde
-                //     b.style.width = "150px"
-                //     b.style.height = "150px"
-                //     b.addEventListener("click", e => {
-                //         b.style.background = playerColor
-                //         const payLoad = {
-                //             "method": "play",
-                //             "clientId": clientId,
-                //             "gameId": gameId,
-                //             "ballId": b.tag,
-                //             "color": playerColor
-                //         }
-                //         ws.send(JSON.stringify(payLoad))
-                //     })
-                //     divBoard.appendChild(b);
-                // }
-
-
-
-
             }
         }
     </script>

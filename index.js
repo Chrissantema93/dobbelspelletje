@@ -6,7 +6,7 @@ app.get("/", (req,res)=> res.sendFile(__dirname + "/index.html"))
 // var server = app.listen(process.env.PORT, ()=>console.log("Listening on http port 9091"))
 const websocketServer = require("websocket").server
 const httpServer = http.createServer(app);
-httpServer.listen(process.env.PORT, () => console.log("Listening.. on 9090"))
+httpServer.listen(PORT, () => console.log("Listening.. on ", PORT))
 //hashmap clients
 const clients = {};
 const games = {};
@@ -31,9 +31,8 @@ wsServer.on("request", request => {
             const gameId = guid();
             games[gameId] = {
                 "id": gameId,
-                "balls": 20,
+                "number": 8,
                 "clients": []
-                
             }
 
             const payLoad = {
@@ -56,17 +55,18 @@ wsServer.on("request", request => {
                 //sorry max players reach
                 return;
             }
-            const color =  {"0": "Red", "1": "Green", "2": "Blue"}[game.clients.length]
+            const color =  {"0": "Red", "1": "Green"}[game.clients.length]
             game.clients.push({
                 "clientId": clientId,
                 "color": color
             })
             //start the game
             if (game.clients.length === 2) updateGameState();
-
+            tegels = maakTegels();
             const payLoad = {
                 "method": "join",
-                "game": game
+                "game": game,
+                "tegels": tegels
             }
             //loop through all clients and tell them that people has joined
             game.clients.forEach(c => {
@@ -89,24 +89,57 @@ wsServer.on("request", request => {
 
         if (result.method === "dice"){
             const gameId = result.gameId;
-            const number = result.number
             let state = games[gameId].state;
             game = games[gameId]
             let results = []
             if (!state) state = {}
 
-            for(let i = 0; i < number; i++){
+            for(let i = 0; i < 8; i++){
                 results.push(rollDice())
             }
+            // if(currentPlayer === game.clients[0].clientId) {
+            //     currentPlayer = game.clients[1].clientId
+            // } else {
+            //     currentPlayer = game.clients[0].clientId
+            // }
+            // state["currentPlayer"] = currentPlayer
+            // console.log(currentPlayer)
 
-            if(currentPlayer === game.clients[0].clientId) {
-                currentPlayer = game.clients[1].clientId
-            } else {
-                currentPlayer = game.clients[0].clientId
-            }
             state["results"] = results;
-            state["currentPlayer"] = currentPlayer
-            console.log(currentPlayer)
+            state["number"] = 8;
+            state["diceThrown"] = 'yes'
+            
+            games[gameId].state = state;
+            updateGameState()
+        }
+
+        if(result.method === 'selectDice'){
+            const gameId = result.gameId;
+            const clientId = result.clientId;
+            const results = result.results;
+            const selectedValue = parseInt(result.selectedValue);
+            const selectedResults = result.selectedResults
+            const number = result.number
+            const total = result.total
+            console.log("selected", selectedValue)
+            let state = games[gameId].state;
+            game = games[gameId]
+            if (!state) state = {}
+            let hoeveelheid = 0
+            for(let i = 0; i < number; i++){
+                console.log(results[i], selectedValue, results[i]===selectedValue)
+                if(results[i] === selectedValue){
+                    selectedResults.push(selectedValue)
+                    hoeveelheid++
+                }
+            }
+            selectedResults.forEach(e =>
+            console.log("waarde", e))
+            overgebleven = number - hoeveelheid
+            console.log("overgebleven", overgebleven)
+            state["results"] = diceArray(overgebleven)
+            state["selectedResults"] = selectedResults
+            state["number"] = overgebleven
             games[gameId].state = state;
             updateGameState()
         }
@@ -128,6 +161,16 @@ wsServer.on("request", request => {
 
 })
 
+function diceArray(number) {
+    results =[]
+    for(let i = 0; i < number; i++){
+                results.push(rollDice())
+            }
+            console.log("resultaten", results)
+        return results
+        
+}
+
 function rollDice() {
         return Math.ceil(Math.random()*6)
 }
@@ -146,6 +189,14 @@ function updateGameState(){
             clients[c.clientId].connection.send(JSON.stringify(payLoad))
         })
     }
+}
+
+function maakTegels(){
+    results = [];
+    for(let i = 21; i<= 36; i++){
+        results.push(i)
+    }
+    return results;
 }
 
 function S4() {
