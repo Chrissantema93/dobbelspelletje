@@ -203,6 +203,15 @@
                     b.textContent = e
                     b.disabled = true
                     tegels.appendChild(b)
+                    b.addEventListener("click", e => {
+                        const payLoad = {
+                            "method": "selectTegel",
+                            "clientId": clientId,
+                            "gameId": gameId,
+                            "selectedTegel": b.value
+                        }
+                        ws.send(JSON.stringify(payLoad))
+                })
                 })
                 
             }

@@ -108,7 +108,7 @@ wsServer.on("request", request => {
             state["results"] = results;
             state["number"] = 8;
             state["diceThrown"] = 'yes'
-            
+            state["availableTegels"] = maakTegels()
             games[gameId].state = state;
             updateGameState()
         }
@@ -140,6 +140,15 @@ wsServer.on("request", request => {
             state["results"] = diceArray(overgebleven)
             state["selectedResults"] = selectedResults
             state["number"] = overgebleven
+            games[gameId].state = state;
+            updateGameState()
+        }
+        if(result.method === 'selectTegel'){
+            const gameId = result.gameId;
+            const clientId = result.clientId;
+            const selectedTegel = result.selectedTegel
+            let state = games[gameId].state;
+            game = games[gameId]
             games[gameId].state = state;
             updateGameState()
         }
