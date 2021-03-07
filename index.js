@@ -3,10 +3,10 @@ const app = require("express")();
 const PORT = process.env.PORT || 9091;
 app.get("/", (req,res)=> res.sendFile(__dirname + "/index.html"))
 
-var server = app.listen(process.env.PORT)
-const websocketServer = require("websocket").listen(server)
-const httpServer = http.createServer();
-// httpServer.listen(process.env.PORT, () => console.log("Listening.. on 9090"))
+// var server = app.listen(process.env.PORT, ()=>console.log("Listening on http port 9091"))
+const websocketServer = require("websocket").server
+const httpServer = http.createServer(app);
+httpServer.listen(process.env.PORT, () => console.log("Listening.. on 9090"))
 //hashmap clients
 const clients = {};
 const games = {};
