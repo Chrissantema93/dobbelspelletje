@@ -1,5 +1,6 @@
 const http = require("http");
 const app = require("express")();
+const PORT = process.env.PORT || 9091;
 app.get("/", (req,res)=> res.sendFile(__dirname + "/index.html"))
 
 app.listen(9091, ()=>console.log("Listening on http port 9091"))
