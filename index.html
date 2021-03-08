@@ -1,221 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Regenwormen</title>
-</head>
-<body>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
     <h1>Regenwormen</h1>
-    <button id = 'btnCreate'>New Game</button>
-    <button id = 'btnJoin'>Join Game</button>
-    <input type = 'text' id = 'txtGameId'>
-    <div id='gamesList'></div>
-    <button id = 'btnDice'>Throw dice</button>
-    <button id = 'endTurn'>End turn</button>
-    <div id  = 'divPlayers'></div>
-    <div id= "tegels"></div>
-    <hr>
-    <div id  = 'divBoard'></div>
-    <div id = 'totaal'></div>
-    <div id="selectedDice"></div>
+    <div id="menu">
+      <button id="btnCreate">New Game</button>
+      <button id="btnJoin">Join Game</button>
+      <input type="text" id="txtGameId" />
+      <div id="gamesList"></div>
+      <button id="closeGames">Close Games</button>
+    </div>
+    <div id="gameWindow">
+      <div id="player1">player1</div>
+      <div id="gameScreen">
+        <button id="btnDice">Throw dice</button>
+        <button id="endTurn">End turn</button>
 
+        <div id="divPlayers"></div>
+        <div id="tegels"></div>
+        <hr />
+        <div id="divBoard"></div>
+        <div id="totaal"></div>
+        <div id="selectedDice"></div>
+      </div>
+      <div id="player2">player2</div>
+    </div>
     <script>
-        //HTML elements
-        let clientId = null;
-        let gameId = null;
-        let playerColor = null;
-        let overgebleven = null;
+      //HTML elements
+      let clientId = null;
+      let gameId = null;
+      let playerColor = null;
+      let overgebleven = null;
 
-        let HOST = location.origin.replace(/^http/, 'ws')
-        let ws = new WebSocket(HOST);
-        const btnCreate = document.getElementById("btnCreate");
-        const btnJoin = document.getElementById("btnJoin");
-        const txtGameId = document.getElementById("txtGameId");
-        const tegels = document.getElementById("tegels");
-        const divPlayers = document.getElementById("divPlayers");
-        const divBoard = document.getElementById("divBoard");
-        const gamesList = document.getElementById("gamesList")
-        const btnDice = document.getElementById("btnDice");
-        const endTurn = document.getElementById("endTurn");
-        const btnTotal = document.getElementById("totaal");
-        const selectedDice = document.getElementById("selectedDice")
-    
-        //wiring events
-        btnJoin.addEventListener("click", e => {
-            if (gameId === null)
-                gameId = txtGameId.value;
-            const payLoad = {
-                "method": "join",
-                "clientId": clientId,
-                "gameId": gameId
-            }
-            ws.send(JSON.stringify(payLoad));
-        })
+      let HOST = location.origin.replace(/^http/, "ws");
+      let ws = new WebSocket(HOST);
+      const btnCreate = document.getElementById("btnCreate");
+      const menuDiv = document.getElementById("menu");
+      const btnJoin = document.getElementById("btnJoin");
+      const txtGameId = document.getElementById("txtGameId");
+      const divTegels = document.getElementById("tegels");
+      const divPlayers = document.getElementById("divPlayers");
+      const divBoard = document.getElementById("divBoard");
+      const player1 = document.getElementById("player1");
+      const gamesList = document.getElementById("gamesList");
+      const btnDice = document.getElementById("btnDice");
+      const endTurn = document.getElementById("endTurn");
+      const closeGames = document.getElementById("closeGames");
+      const btnTotal = document.getElementById("totaal");
+      const selectedDice = document.getElementById("selectedDice");
 
-        btnCreate.addEventListener("click", e => {
+      //wiring events
+      btnJoin.addEventListener("click", (e) => {
+        if (gameId === null) gameId = txtGameId.value;
+        while (menuDiv.firstChild) menuDiv.removeChild(menuDiv.firstChild);
+        const payLoad = {
+          method: "join",
+          clientId: clientId,
+          gameId: gameId,
+        };
+        ws.send(JSON.stringify(payLoad));
+      });
 
-            const payLoad = {
-                "method": "create",
-                "clientId": clientId
-            }
+      btnCreate.addEventListener("click", (e) => {
+        const payLoad = {
+          method: "create",
+          clientId: clientId,
+        };
 
-            ws.send(JSON.stringify(payLoad));
+        ws.send(JSON.stringify(payLoad));
+      });
 
-        })
+      btnDice.addEventListener("click", (e) => {
+        if (gameId === null) gameId = txtGameId.value;
+        const payLoad = {
+          method: "dice",
+          clientId: clientId,
+          gameId: gameId,
+        };
+        ws.send(JSON.stringify(payLoad));
+      });
 
-        btnDice.addEventListener("click", e => {
-            if (gameId === null)
-                gameId = txtGameId.value;
-            const payLoad = {
-                "method": "dice",
-                "clientId": clientId,
-                "gameId": gameId
-            }
-            ws.send(JSON.stringify(payLoad));
-        })
+      closeGames.addEventListener("click", (e) => {
+        const payLoad = {
+          method: "closeGames",
+          clientId: clientId,
+        };
+        ws.send(JSON.stringify(payLoad));
+      });
 
-        
-
-        ws.onmessage = message => {
-            //message.data
-            const response = JSON.parse(message.data);
-            //connect
-            if (response.method === "connect"){
-                clientId = response.clientId;
-                console.log("Client id Set successfully " + clientId)
-            }
-
-            //create
-            if (response.method === "create"){
-                gameId = response.game.id;
-                overgebleven = response.game.number
-                games = Object.keys(response.games)
-                for(let i = 0; i< games.length; i++){
-                    const g = document.createElement("div");
-                    g.style.width = "200px";
-                    g.textContent = games[i]
-                    gamesList.appendChild(g);
-                }
-                console.log("game successfully created with id " + response.game.id + " with " + response.game.balls + " balls")  
-            }
-
-
-            //update
-            if (response.method === "update"){
-                if (!response.game.state) return;
-                // if(response.game.state["currentPlayer"] != clientId ){
-                //     btnDice.disabled = true;
-                // } else {
-                //     btnDice.disabled = false;
-                // }
-                if(response.game.state["diceThrown"] === "yes" ){
-                    btnDice.disabled = true;
-                } else {
-                    btnDice.disabled = false;
-                }
-                const resultaten = response.game.state["results"]
-                const selectedResults = response.game.state["selectedResults"] || []
-                overgebleven = response.game.state["number"]
-                while(divBoard.firstChild)
-                    divBoard.removeChild (divBoard.firstChild)
-                for(let i = 0; i <resultaten.length; i++ ) {
-                    const b = document.createElement("button");
-                    b.id = "ball" + (i +1);
-                    b.tag = i+1
-                    waarde = resultaten[i]
-                    b.textContent = waarde
-                    b.value = waarde
-                    let total = response.game.state["total"] || 0
-                    if(selectedResults){
-                        if(selectedResults.includes(waarde)){
-                            b.disabled = true;
-                        }
-                    }
-                    if(selectedResults.length > 0){
-                     total = selectedResults.reduce((a, b) => a + b)
-                     btnTotal.textContent = total
-                    }
-                    b.style.width = "100px"
-                    b.style.height = "100px"
-                     b.addEventListener("click", e => {
-                        const payLoad = {
-                            "method": "selectDice",
-                            "clientId": clientId,
-                            "gameId": gameId,
-                            "selectedValue": b.value,
-                            "results" : resultaten,
-                            "number" : overgebleven,
-                            "selectedResults" : selectedResults,
-                            "total" : total
-                        }
-                        ws.send(JSON.stringify(payLoad))
-                    })
-                    divBoard.appendChild(b);
-
-                    for(let x of tegels.children){
-                        if(total === parseInt(x.value)){
-                            x.disabled = false;
-                        } else{
-                            x.disabled = true;
-                        }
-                    }
-                }
-                
-                
-                while(selectedDice.firstChild)
-                    selectedDice.removeChild (selectedDice.firstChild)
-                if(selectedResults){
-                for(let i = 0; i < selectedResults.length; i++){
-                    const b = document.createElement("button");
-                    waarde = selectedResults[i]
-                    b.textContent = waarde
-                    b.value = waarde
-                    b.style.width = "100px"
-                    b.style.height = "100px"
-                    selectedDice.appendChild(b);
-                }
-            }}
-
-            //join
-            if (response.method === "join"){
-                const game = response.game;
-                const speeltegels = response.tegels
-                while(divPlayers.firstChild)
-                    divPlayers.removeChild (divPlayers.firstChild)
-
-                game.clients.forEach (c => {
-
-                    const d = document.createElement("div");
-                    d.style.width = "200px";
-                    d.style.background = c.color
-                    d.textContent = c.clientId;
-                    divPlayers.appendChild(d);
-
-                    if (c.clientId === clientId) playerColor = c.color;
-                })
-
-                speeltegels.forEach(e=> {
-                    const b = document.createElement("button");
-                    b.style.width = "60px"
-                    b.style.height = "60px"
-                    b.value = e
-                    b.textContent = e
-                    b.disabled = true
-                    tegels.appendChild(b)
-                    b.addEventListener("click", e => {
-                        const payLoad = {
-                            "method": "selectTegel",
-                            "clientId": clientId,
-                            "gameId": gameId,
-                            "selectedTegel": b.value
-                        }
-                        ws.send(JSON.stringify(payLoad))
-                })
-                })
-                
-            }
+      ws.onmessage = (message) => {
+        //message.data
+        const response = JSON.parse(message.data);
+        //connect
+        if (response.method === "connect") {
+          clientId = response.clientId;
+          console.log("Client id Set successfully " + clientId);
         }
+
+        //create
+        if (response.method === "create") {
+          gameId = response.game.id;
+          overgebleven = response.game.number;
+          games = Object.keys(response.games);
+          for (let i = 0; i < games.length; i++) {
+            const g = document.createElement("div");
+            g.style.width = "200px";
+            g.textContent = games[i];
+            gamesList.appendChild(g);
+          }
+          console.log(
+            "game successfully created with id " +
+              response.game.id +
+              " with " +
+              response.game.balls +
+              " balls"
+          );
+        }
+
+        //update
+        if (response.method === "update") {
+          if (!response.game.state) return;
+          // if(response.game.state["currentPlayer"] != clientId ){
+          //     btnDice.disabled = true;
+          // } else {
+          //     btnDice.disabled = false;
+          // }
+          if (response.game.state["diceThrown"] === "yes") {
+            btnDice.disabled = true;
+          } else {
+            btnDice.disabled = false;
+          }
+          const resultaten = response.game.state["results"];
+          const selectedResults = response.game.state["selectedResults"] || [];
+          const overgeblevenTegels = response.game.state["tegels"];
+          const player1Tegels = response.game.state["player1Tegels"];
+          overgebleven = response.game.state["number"];
+          while (divBoard.firstChild) divBoard.removeChild(divBoard.firstChild);
+          for (let i = 0; i < resultaten.length; i++) {
+            const b = document.createElement("button");
+            b.id = "ball" + (i + 1);
+            b.tag = i + 1;
+            waarde = resultaten[i];
+            b.textContent = waarde;
+            b.value = waarde;
+            let total = response.game.state["total"] || 0;
+            if (selectedResults) {
+              if (selectedResults.includes(waarde)) {
+                b.disabled = true;
+              }
+            }
+            if (selectedResults.length > 0) {
+              total = selectedResults.reduce((a, b) => a + b);
+              btnTotal.textContent = total;
+            }
+            b.style.width = "100px";
+            b.style.height = "100px";
+            b.addEventListener("click", (e) => {
+              const payLoad = {
+                method: "selectDice",
+                clientId: clientId,
+                gameId: gameId,
+                selectedValue: b.value,
+                results: resultaten,
+                number: overgebleven,
+                selectedResults: selectedResults,
+                total: total,
+              };
+              ws.send(JSON.stringify(payLoad));
+            });
+            divBoard.appendChild(b);
+            maaktegels(overgeblevenTegels);
+            for (let tegel of divTegels.children) {
+              if (total === parseInt(tegel.value)) {
+                tegel.disabled = false;
+              } else {
+                tegel.disabled = true;
+              }
+            }
+          }
+          for (let i = 0; i < player1Tegels.length; i++) {
+            const b = document.createElement("button");
+            waarde = player1Tegels[i];
+            b.textContent = waarde;
+            b.value = waarde;
+            player1.appendChild(b);
+          }
+          while (selectedDice.firstChild)
+            selectedDice.removeChild(selectedDice.firstChild);
+          if (selectedResults) {
+            for (let i = 0; i < selectedResults.length; i++) {
+              const b = document.createElement("button");
+              waarde = selectedResults[i];
+              b.textContent = waarde;
+              b.value = waarde;
+              b.style.width = "100px";
+              b.style.height = "100px";
+              selectedDice.appendChild(b);
+            }
+          }
+        }
+
+        //join
+        if (response.method === "join") {
+          const game = response.game;
+          const speeltegels = response.game.state.tegels;
+          while (divPlayers.firstChild)
+            divPlayers.removeChild(divPlayers.firstChild);
+
+          game.clients.forEach((c) => {
+            const d = document.createElement("div");
+            d.style.width = "200px";
+            d.style.background = c.color;
+            d.textContent = c.clientId;
+            divPlayers.appendChild(d);
+
+            if (c.clientId === clientId) playerColor = c.color;
+          });
+
+          maaktegels(speeltegels);
+        }
+      };
+      function maaktegels(tegels) {
+        while (divTegels.firstChild) {
+          divTegels.removeChild(divTegels.firstChild);
+        }
+        tegels.forEach((e) => {
+          const b = document.createElement("button");
+          b.style.width = "60px";
+          b.style.height = "60px";
+          b.value = e;
+          b.textContent = e;
+          b.disabled = true;
+          divTegels.appendChild(b);
+          b.addEventListener("click", (e) => {
+            const payLoad = {
+              method: "selectTegel",
+              clientId: clientId,
+              gameId: gameId,
+              selectedTegel: b.value,
+            };
+            ws.send(JSON.stringify(payLoad));
+          });
+        });
+      }
     </script>
-</body>
+  </body>
 </html>
