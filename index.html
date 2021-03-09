@@ -53,11 +53,13 @@
       const closeGames = document.getElementById("closeGames");
       const btnTotal = document.getElementById("totaal");
       const selectedDice = document.getElementById("selectedDice");
+      const gameWindow = document.getElementById("gameWindow");
 
       //wiring events
       btnJoin.addEventListener("click", (e) => {
         if (gameId === null) gameId = txtGameId.value;
         while (menuDiv.firstChild) menuDiv.removeChild(menuDiv.firstChild);
+        gameWindow.style.visibility = "visible";
         const payLoad = {
           method: "join",
           clientId: clientId,
