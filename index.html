@@ -36,6 +36,7 @@
       let gameId = null;
       let playerColor = null;
       let overgebleven = null;
+      let total = null;
 
       let HOST = location.origin.replace(/^http/, "ws");
       let ws = new WebSocket(HOST);
@@ -115,96 +116,42 @@
             g.textContent = games[i];
             gamesList.appendChild(g);
           }
-          console.log(
-            "game successfully created with id " +
-              response.game.id +
-              " with " +
-              response.game.balls +
-              " balls"
-          );
+          console.log("game successfully created with id " + response.game.id);
         }
 
         //update
         if (response.method === "update") {
-          if (!response.game.state) return;
-          // if(response.game.state["currentPlayer"] != clientId ){
-          //     btnDice.disabled = true;
-          // } else {
-          //     btnDice.disabled = false;
-          // }
-          if (response.game.state["diceThrown"] === "yes") {
-            btnDice.disabled = true;
-          } else {
-            btnDice.disabled = false;
+          if (!response.game.state) {
+            return;
           }
+
+          const currentPlayer = response.game.state["currentPlayer"];
+          const diceThrown = response.game.state["diceThrown"];
           const resultaten = response.game.state["results"];
           const selectedResults = response.game.state["selectedResults"] || [];
           const overgeblevenTegels = response.game.state["tegels"];
           const player1Tegels = response.game.state["player1Tegels"];
+          const player2Tegels = response.game.state["player2Tegels"];
           overgebleven = response.game.state["number"];
-          while (divBoard.firstChild) divBoard.removeChild(divBoard.firstChild);
-          for (let i = 0; i < resultaten.length; i++) {
-            const b = document.createElement("button");
-            b.id = "ball" + (i + 1);
-            b.tag = i + 1;
-            waarde = resultaten[i];
-            b.textContent = waarde;
-            b.value = waarde;
-            let total = response.game.state["total"] || 0;
-            if (selectedResults) {
-              if (selectedResults.includes(waarde)) {
-                b.disabled = true;
-              }
-            }
-            if (selectedResults.length > 0) {
-              total = selectedResults.reduce((a, b) => a + b);
-              btnTotal.textContent = total;
-            }
-            b.style.width = "100px";
-            b.style.height = "100px";
-            b.addEventListener("click", (e) => {
-              const payLoad = {
-                method: "selectDice",
-                clientId: clientId,
-                gameId: gameId,
-                selectedValue: b.value,
-                results: resultaten,
-                number: overgebleven,
-                selectedResults: selectedResults,
-                total: total,
-              };
-              ws.send(JSON.stringify(payLoad));
-            });
-            divBoard.appendChild(b);
-            maaktegels(overgeblevenTegels);
-            for (let tegel of divTegels.children) {
-              if (total === parseInt(tegel.value)) {
-                tegel.disabled = false;
-              } else {
-                tegel.disabled = true;
-              }
+
+          determinePlayer(currentPlayer, diceThrown);
+          createDices(resultaten, selectedResults);
+          maaktegels(overgeblevenTegels);
+          playerTegels(player1Tegels, player2Tegels);
+          selectedTegels(selectedResults);
+
+          if (selectedResults.length > 0) {
+            total = selectedResults.reduce((a, b) => a + b);
+            btnTotal.textContent = total;
+          }
+          for (let tegel of divTegels.children) {
+            if (total === parseInt(tegel.value)) {
+              tegel.disabled = false;
+            } else {
+              tegel.disabled = true;
             }
           }
-          for (let i = 0; i < player1Tegels.length; i++) {
-            const b = document.createElement("button");
-            waarde = player1Tegels[i];
-            b.textContent = waarde;
-            b.value = waarde;
-            player1.appendChild(b);
-          }
-          while (selectedDice.firstChild)
-            selectedDice.removeChild(selectedDice.firstChild);
-          if (selectedResults) {
-            for (let i = 0; i < selectedResults.length; i++) {
-              const b = document.createElement("button");
-              waarde = selectedResults[i];
-              b.textContent = waarde;
-              b.value = waarde;
-              b.style.width = "100px";
-              b.style.height = "100px";
-              selectedDice.appendChild(b);
-            }
-          }
+
         }
 
         //join
@@ -226,30 +173,112 @@
 
           maaktegels(speeltegels);
         }
-      };
-      function maaktegels(tegels) {
-        while (divTegels.firstChild) {
-          divTegels.removeChild(divTegels.firstChild);
-        }
-        tegels.forEach((e) => {
-          const b = document.createElement("button");
-          b.style.width = "60px";
-          b.style.height = "60px";
-          b.value = e;
-          b.textContent = e;
-          b.disabled = true;
-          divTegels.appendChild(b);
-          b.addEventListener("click", (e) => {
-            const payLoad = {
-              method: "selectTegel",
-              clientId: clientId,
-              gameId: gameId,
-              selectedTegel: b.value,
-            };
-            ws.send(JSON.stringify(payLoad));
-          });
-        });
+        
       }
+      function maaktegels(tegels) {
+          while (divTegels.firstChild) {
+            divTegels.removeChild(divTegels.firstChild);
+          }
+          tegels.forEach((e) => {
+            const b = document.createElement("button");
+            b.style.width = "60px";
+            b.style.height = "60px";
+            b.value = e;
+            b.textContent = e;
+            b.disabled = true;
+            divTegels.appendChild(b);
+            b.addEventListener("click", (e) => {
+              const payLoad = {
+                method: "selectTegel",
+                clientId: clientId,
+                gameId: gameId,
+                selectedTegel: b.value,
+              };
+              ws.send(JSON.stringify(payLoad));
+            });
+          });
+        }
+
+        function determinePlayer(currentPlayer, diceThrown) {
+          if (currentPlayer === clientId) {
+            btnDice.disabled = false;
+            if (diceThrown === "yes") {
+              btnDice.disabled = true;
+            } else {
+              btnDice.disabled = false;
+            }
+          } else {
+            btnDice.disabled = true;
+          }
+        }
+        
+        function createDices(resultaten, selectedResults) {
+          while (divBoard.firstChild) {
+            divBoard.removeChild(divBoard.firstChild);
+          }
+          for (let i = 0; i < resultaten?.length; i++) {
+            const b = document.createElement("button");
+            b.id = "tegel" + (i + 1);
+            b.tag = i + 1;
+            waarde = resultaten[i];
+            b.textContent = waarde;
+            b.value = waarde;
+            if (selectedResults?.includes(waarde)) {
+              b.disabled = true;
+            }
+            b.style.width = "100px";
+            b.style.height = "100px";
+            b.addEventListener("click", (e) => {
+              const payLoad = {
+                method: "selectDice",
+                clientId: clientId,
+                gameId: gameId,
+                selectedValue: b.value,
+                results: resultaten,
+                number: overgebleven,
+                selectedResults: selectedResults,
+                total: total,
+              };
+              ws.send(JSON.stringify(payLoad));
+            });
+            divBoard.appendChild(b);
+          }
+        }
+        function playerTegels(player1Tegels, player2Tegels){
+          while (player1.firstChild) player1.removeChild(player1.firstChild);
+          for (let i = 0; i < player1Tegels.length; i++) {
+            const b = document.createElement("button");
+            waarde = player1Tegels[i];
+            b.textContent = waarde;
+            b.value = waarde;
+            b.disabled = true;
+            player1.appendChild(b);
+          }
+          while (player2.firstChild) player2.removeChild(player2.firstChild);
+          for (let i = 0; i < player2Tegels.length; i++) {
+            const b = document.createElement("button");
+            waarde = player2Tegels[i];
+            b.textContent = waarde;
+            b.value = waarde;
+            b.disabled = true;
+            player2.appendChild(b);
+          }
+        }
+
+        function selectedTegels(selectedResults){
+          while (selectedDice.firstChild){
+            selectedDice.removeChild(selectedDice.firstChild);
+          }
+          for (let i = 0; i < selectedResults?.length; i++) {
+            const b = document.createElement("button");
+            waarde = selectedResults[i];
+            b.textContent = waarde;
+            b.value = waarde;
+            b.style.width = "100px";
+            b.style.height = "100px";
+            selectedDice.appendChild(b);
+          }
+        }
     </script>
   </body>
 </html>

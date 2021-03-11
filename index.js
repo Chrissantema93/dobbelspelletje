@@ -25,7 +25,7 @@ function createStartingState(clientId) {
     number: 8,
     currentPlayer: clientId,
     player1Tegels: [],
-    player2Tegels: []
+    player2Tegels: [],
   };
 }
 
@@ -41,7 +41,8 @@ wsServer.on("request", (request) => {
     if (result.method === "create") {
       const clientId = result.clientId;
       currentPlayer = clientId;
-
+      startingPlayer = currentPlayer;
+      console.log(currentPlayer, "begin van t spel speler");
       const gameId = guid();
       games[gameId] = {
         id: gameId,
@@ -158,17 +159,27 @@ wsServer.on("request", (request) => {
       const clientId = result.clientId;
       const selectedTegel = parseInt(result.selectedTegel);
       let state = games[gameId].state;
-      console.log(state["tegels"], "ervoor");
       const beschikbareTegels = state["tegels"];
       const overgeblevenTegels = beschikbareTegels.filter(
-        (x) => x !== selectedTegel
+        (tegel) => tegel !== selectedTegel
       );
       state["tegels"] = overgeblevenTegels;
-      state["player1Tegels"].push(selectedTegel)
-      console.log(state["player1Tegels"], "erna");
+      if (startingPlayer === clientId) {
+        state["player1Tegels"].push(selectedTegel);
+      } else {
+        state["player2Tegels"].push(selectedTegel);
+      }
       game = games[gameId];
+      state["currentPlayer"] = changeTurn(clientId, game.clients);
+      state["diceThrown"] = "no";
+      state["results"] = [];
+      state["selectedResults"] = [];
       games[gameId].state = state;
+      console.log(state["currentPlayer"]);
       updateGameState();
+    }
+    if (result.method === "endTurn") {
+      console.log("ik doe nog ff niks maat");
     }
     if (result.method === "closeGames") {
       games = {};
@@ -224,6 +235,14 @@ function maakTegels() {
     results.push(i);
   }
   return results;
+}
+
+function changeTurn(clientId, clients) {
+  if (clients[0].clientId === clientId) {
+    return clients[1].clientId;
+  } else {
+    return clients[0].clientId;
+  }
 }
 
 function S4() {
