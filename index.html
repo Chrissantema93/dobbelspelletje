@@ -94,6 +94,16 @@
         ws.send(JSON.stringify(payLoad));
       });
 
+      endTurn.addEventListener("click", (e) => {
+        if (gameId === null) gameId = txtGameId.value;
+        const payLoad = {
+          method: "endTurn",
+          clientId: clientId,
+          gameId: gameId,
+        };
+        ws.send(JSON.stringify(payLoad));
+      });
+
       closeGames.addEventListener("click", (e) => {
         const payLoad = {
           method: "closeGames",

@@ -175,11 +175,19 @@ wsServer.on("request", (request) => {
       state["results"] = [];
       state["selectedResults"] = [];
       games[gameId].state = state;
-      console.log(state["currentPlayer"]);
       updateGameState();
     }
     if (result.method === "endTurn") {
-      console.log("ik doe nog ff niks maat");
+      const gameId = result.gameId;
+      game = games[gameId];
+      const clientId = result.clientId;
+      let state = games[gameId].state;
+      state["currentPlayer"] = changeTurn(clientId, game.clients);
+      state["diceThrown"] = "no";
+      state["results"] = [];
+      state["selectedResults"] = [];
+      games[gameId].state = state;
+      updateGameState();
     }
     if (result.method === "closeGames") {
       games = {};
