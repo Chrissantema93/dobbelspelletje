@@ -154,10 +154,12 @@
           createDices(resultaten, selectedResults);
           maaktegels(overgeblevenTegels);
           playerTegels(player1Tegels, player2Tegels);
+          console.log('selectedResults', selectedResults)
           selectedTegels(selectedResults);
 
           if (selectedResults.length > 0) {
-            total = selectedResults.reduce((a, b) => a + b);
+            arr = selectedResults.map(x => x.value)
+            total = arr.reduce((a, b) => a + b);
             btnTotal.textContent = total;
           }
           for (let tegel of divTegels.children) {
@@ -215,6 +217,13 @@
       }
 
       function determinePlayer(currentPlayer, diceThrown) {
+        for (let tegel of divBoard.children) {
+          if (currentPlayer === clientId) {
+            tegel.disabled = false;
+          } else {
+            tegel.disabled = true;
+          }
+        }
         if (currentPlayer === clientId) {
           btnDice.disabled = false;
           if (diceThrown === "yes") {
@@ -233,11 +242,14 @@
         }
         for (let i = 0; i < resultaten?.length; i++) {
           const b = document.createElement("button");
+          obje = resultaten[i];
           b.id = "tegel" + (i + 1);
           b.tag = i + 1;
-          waarde = resultaten[i];
-          b.textContent = waarde;
+          waarde = obje["value"];
+          text = obje["dice"];
           b.value = waarde;
+          b.textContent = text
+
           if (selectedResults?.includes(waarde)) {
             b.disabled = true;
           }
@@ -248,7 +260,7 @@
               method: "selectDice",
               clientId: clientId,
               gameId: gameId,
-              selectedValue: b.value,
+              selectedValue: {dice: text, value: waarde},
               results: resultaten,
               number: overgebleven,
               selectedResults: selectedResults,
@@ -286,9 +298,10 @@
         }
         for (let i = 0; i < selectedResults?.length; i++) {
           const b = document.createElement("button");
-          waarde = selectedResults[i];
-          b.textContent = waarde;
-          b.value = waarde;
+          obje = selectedResults[i];
+          b.textContent = obje['dice']
+          b.value = obje['value']
+
           b.style.width = "100px";
           b.style.height = "100px";
           selectedDice.appendChild(b);

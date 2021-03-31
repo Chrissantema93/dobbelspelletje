@@ -8,6 +8,7 @@ app.use(express.static(path.join(__dirname, "/public/")));
 app.get("/", (req, res) => res.sendFile(__dirname + "/index.html"));
 
 const websocketServer = require("websocket").server;
+const e = require("express");
 const httpServer = http.createServer(app);
 httpServer.listen(PORT, () => console.log("Listening.. on ", PORT));
 //hashmap clients
@@ -103,12 +104,10 @@ wsServer.on("request", (request) => {
       const gameId = result.gameId;
       let state = games[gameId].state;
       game = games[gameId];
-      let results = [];
+      
       if (!state) state = {};
 
-      for (let i = 0; i < 8; i++) {
-        results.push(rollDice());
-      }
+      results = diceArray(8)
       // if(currentPlayer === game.clients[0].clientId) {
       //     currentPlayer = game.clients[1].clientId
       // } else {
@@ -129,25 +128,25 @@ wsServer.on("request", (request) => {
       const gameId = result.gameId;
       const clientId = result.clientId;
       const results = result.results;
-      const selectedValue = parseInt(result.selectedValue);
+      const selectedValue = result.selectedValue;
       const selectedResults = result.selectedResults;
       const number = result.number;
       const total = result.total;
-      console.log("selected", selectedValue);
       let state = games[gameId].state;
       game = games[gameId];
       if (!state) state = {};
       let hoeveelheid = 0;
+
       for (let i = 0; i < number; i++) {
-        console.log(results[i], selectedValue, results[i] === selectedValue);
-        if (results[i] === selectedValue) {
+        if (results[i]['dice'] === selectedValue['dice']) {
+          console.log('results i', results[i]['dice'])
+          console.log('selectedValue', selectedValue)
           selectedResults.push(selectedValue);
           hoeveelheid++;
         }
       }
       selectedResults.forEach((e) => console.log("waarde", e));
       overgebleven = number - hoeveelheid;
-      console.log("overgebleven", overgebleven);
       state["results"] = diceArray(overgebleven);
       state["selectedResults"] = selectedResults;
       state["number"] = overgebleven;
@@ -191,7 +190,6 @@ wsServer.on("request", (request) => {
     }
     if (result.method === "closeGames") {
       games = {};
-      console.log("games", games);
     }
   });
 
@@ -212,9 +210,13 @@ wsServer.on("request", (request) => {
 function diceArray(number) {
   results = [];
   for (let i = 0; i < number; i++) {
-    results.push(rollDice());
+    x = rollDice();
+    if (x === 6) {
+      results.push({ dice: "X", value: 5 });
+    } else {
+      results.push({ dice: x, value: x });
+    }
   }
-  console.log("resultaten", results);
   return results;
 }
 
