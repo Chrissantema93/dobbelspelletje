@@ -34,7 +34,10 @@ wsServer.on("request", (request) => {
   //connect
   const connection = request.accept(null, request.origin);
   connection.on("open", () => console.log("opened!"));
-  connection.on("close", () => console.log("closed!"));
+  connection.on("close", () => {
+    console.log("closed!");
+    games = {};
+  });
   connection.on("message", (message) => {
     const result = JSON.parse(message.utf8Data);
     //I have received a message from the client
@@ -104,10 +107,10 @@ wsServer.on("request", (request) => {
       const gameId = result.gameId;
       let state = games[gameId].state;
       game = games[gameId];
-      
+
       if (!state) state = {};
 
-      results = diceArray(8)
+      results = diceArray(8);
       // if(currentPlayer === game.clients[0].clientId) {
       //     currentPlayer = game.clients[1].clientId
       // } else {
@@ -126,28 +129,31 @@ wsServer.on("request", (request) => {
 
     if (result.method === "selectDice") {
       const gameId = result.gameId;
-      const clientId = result.clientId;
       const results = result.results;
       const selectedValue = result.selectedValue;
       const selectedResults = result.selectedResults;
       const number = result.number;
-      const total = result.total;
       let state = games[gameId].state;
       game = games[gameId];
+
       if (!state) state = {};
       let hoeveelheid = 0;
 
       for (let i = 0; i < number; i++) {
-        if (results[i]['dice'] === selectedValue['dice']) {
-          console.log('results i', results[i]['dice'])
-          console.log('selectedValue', selectedValue)
+        if (String(results[i]["dice"]) === String(selectedValue["dice"])) {
           selectedResults.push(selectedValue);
           hoeveelheid++;
         }
       }
-      selectedResults.forEach((e) => console.log("waarde", e));
       overgebleven = number - hoeveelheid;
       state["results"] = diceArray(overgebleven);
+
+      if (selectedResults.length > 0) {
+        arr = selectedResults.map((x) => parseInt(x.value));
+        total = arr.reduce((a, b) => a + b);
+      }
+
+      state["total"] = total;
       state["selectedResults"] = selectedResults;
       state["number"] = overgebleven;
       games[gameId].state = state;
@@ -181,6 +187,31 @@ wsServer.on("request", (request) => {
       game = games[gameId];
       const clientId = result.clientId;
       let state = games[gameId].state;
+      player1Tegels = state["player1Tegels"];
+      player2Tegels = state["player2Tegels"];
+      tegels = state["tegels"];
+      if (clientId === startingPlayer) {
+        if (player1Tegels.length > 0) {
+          laatste = player1Tegels.pop();
+          player1Tegels = player1Tegels.filter((x) => x !== laatste);
+          laatsteTegel = tegels.pop()
+          tegels = tegels.filter(x => x !== laatsteTegel)
+          tegels.push(laatste);
+        }
+      } else {
+        if (player2Tegels.length > 0) {
+          laatste = player2Tegels.pop();
+          player2Tegels = player2Tegels.filter((x) => x !== laatste);
+          laatsteTegel = tegels.pop()
+          tegels = tegels.filter(x => x !== laatsteTegel)
+          tegels.push(laatste);
+        }
+      }
+
+      tegels = tegels.slice(0).sort();
+      state["tegels"] = tegels;
+      state["player1Tegels"] = player1Tegels;
+      state["player2Tegels"] = player2Tegels;
       state["currentPlayer"] = changeTurn(clientId, game.clients);
       state["diceThrown"] = "no";
       state["results"] = [];

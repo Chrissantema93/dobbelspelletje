@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Regenwormen</title>
+    <title>Dobbelspelletje</title>
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
-    <h1>Regenwormen</h1>
+    <h1>dobbelspelletje</h1>
     <div id="menu">
       <button id="btnCreate">New Game</button>
       <button id="btnJoin">Join Game</button>
@@ -148,26 +148,53 @@
           const overgeblevenTegels = response.game.state["tegels"];
           const player1Tegels = response.game.state["player1Tegels"];
           const player2Tegels = response.game.state["player2Tegels"];
+          const total = response.game.state["total"];
           overgebleven = response.game.state["number"];
 
           determinePlayer(currentPlayer, diceThrown);
           createDices(resultaten, selectedResults);
           maaktegels(overgeblevenTegels);
           playerTegels(player1Tegels, player2Tegels);
-          console.log('selectedResults', selectedResults)
+          console.log("selectedResults", selectedResults);
           selectedTegels(selectedResults);
 
-          if (selectedResults.length > 0) {
-            arr = selectedResults.map(x => x.value)
-            total = arr.reduce((a, b) => a + b);
-            btnTotal.textContent = total;
-          }
-          for (let tegel of divTegels.children) {
-            if (total === parseInt(tegel.value)) {
-              tegel.disabled = false;
-            } else {
-              tegel.disabled = true;
+          btnTotal.textContent = total;
+          if (total >= 21) {
+            for (let i = 0; i < divTegels.children.length; i++) {
+              if (
+                total === parseInt(divTegels.children[i].value) &&
+                selectedResults.map((x) => x.dice).includes("X")
+              ) {
+                divTegels.children[i].disabled = false;
+              } else if (
+                divTegels.length > 1 &&
+                selectedResults.map((x) => x.dice).includes("X")
+              ) {
+                swag = divTegels.children.map(x => x.value)
+                let result = Math.max.apply(Math, swag.filter( x => x < b));
+                if(parseInt(divTegels.children[i] === result)){
+                divTegels.children[i].disabled = false;
+                }
+              } else {
+                divTegels.children[i].disabled = true;
+              }
             }
+            if(player1.firstChild || player2.firstChild){
+            if (total === parseInt(player1.firstChild?.value)) {
+              console.log(player1.firstChild)
+              player1.firstChild.disabled = false;
+            } else if (total === parseInt(player2.firstChild?.value)) {
+               console.log(player2.firstChild)
+              player2.firstChild.disabled = false;
+            } else {
+              player1.firstChild.disabled = true;
+              player2.firstChild.disabled = true;
+            }
+          }}
+
+          if (currentPlayer !== clientId) {
+            bla = document.querySelectorAll("button");
+            bla.forEach((x) => (x.disabled = true));
           }
         }
 
@@ -228,6 +255,7 @@
           btnDice.disabled = false;
           if (diceThrown === "yes") {
             btnDice.disabled = true;
+            endTurn.disabled = false;
           } else {
             btnDice.disabled = false;
           }
@@ -248,9 +276,11 @@
           waarde = obje["value"];
           text = obje["dice"];
           b.value = waarde;
-          b.textContent = text
+          b.textContent = text;
 
-          if (selectedResults?.includes(waarde)) {
+          if (
+            selectedResults.map((x) => String(x.dice))?.includes(String(text))
+          ) {
             b.disabled = true;
           }
           b.style.width = "100px";
@@ -260,18 +290,20 @@
               method: "selectDice",
               clientId: clientId,
               gameId: gameId,
-              selectedValue: {dice: text, value: waarde},
+              selectedValue: { dice: b.textContent, value: b.value },
               results: resultaten,
               number: overgebleven,
               selectedResults: selectedResults,
               total: total,
             };
+            console.log(payLoad);
             ws.send(JSON.stringify(payLoad));
           });
           divBoard.appendChild(b);
         }
       }
       function playerTegels(player1Tegels, player2Tegels) {
+        player1Tegels = player1Tegels.reverse();
         while (player1.firstChild) player1.removeChild(player1.firstChild);
         for (let i = 0; i < player1Tegels.length; i++) {
           const b = document.createElement("button");
@@ -281,6 +313,7 @@
           b.disabled = true;
           player1.appendChild(b);
         }
+        player2Tegels = player2Tegels.reverse();
         while (player2.firstChild) player2.removeChild(player2.firstChild);
         for (let i = 0; i < player2Tegels.length; i++) {
           const b = document.createElement("button");
@@ -299,8 +332,8 @@
         for (let i = 0; i < selectedResults?.length; i++) {
           const b = document.createElement("button");
           obje = selectedResults[i];
-          b.textContent = obje['dice']
-          b.value = obje['value']
+          b.textContent = obje["dice"];
+          b.value = obje["value"];
 
           b.style.width = "100px";
           b.style.height = "100px";
