@@ -6,6 +6,7 @@
     <title>Dobbelspelletje</title>
     <link rel="stylesheet" href="css/styles.css" />
   </head>
+
   <body>
     <h1>dobbelspelletje</h1>
     <div id="menu">
@@ -149,52 +150,65 @@
           const player1Tegels = response.game.state["player1Tegels"];
           const player2Tegels = response.game.state["player2Tegels"];
           const total = response.game.state["total"];
+          const player1Id = response.game.state["player1"];
+          const player2Id = response.game.state["player2"];
           overgebleven = response.game.state["number"];
 
           determinePlayer(currentPlayer, diceThrown);
           createDices(resultaten, selectedResults);
           maaktegels(overgeblevenTegels);
           playerTegels(player1Tegels, player2Tegels);
-          console.log("selectedResults", selectedResults);
           selectedTegels(selectedResults);
 
           btnTotal.textContent = total;
-          if (total >= 21) {
-            for (let i = 0; i < divTegels.children.length; i++) {
-              if (
-                total === parseInt(divTegels.children[i].value) &&
-                selectedResults.map((x) => x.dice).includes("X")
-              ) {
-                divTegels.children[i].disabled = false;
-              } else if (
-                divTegels.length > 1 &&
-                selectedResults.map((x) => x.dice).includes("X")
-              ) {
-                swag = divTegels.children.map(x => x.value)
-                let result = Math.max.apply(Math, swag.filter( x => x < b));
-                if(parseInt(divTegels.children[i] === result)){
-                divTegels.children[i].disabled = false;
+          const availableTegels = Array.from(divTegels.children, (x) =>
+            parseInt(x.value)
+          );
+          const xGegooid = selectedResults.map((x) => x.dice).includes("X");
+
+          if (total >= 21 && xGegooid) {
+            if (availableTegels.includes(total)) {
+              for (tegel of divTegels.children) {
+                const tegelWaarde = parseInt(tegel.value);
+                if (total === tegelWaarde) {
+                  tegel.disabled = false;
                 }
-              } else {
-                divTegels.children[i].disabled = true;
+              }
+            } else {
+              eerstvolgende =
+                Math.max.apply(
+                  Math,
+                  availableTegels.filter((x) => x < total)
+                ) ?? 0;
+              if (eerstvolgende > 1) {
+                for (tegel of divTegels.children) {
+                  if (parseInt(tegel.value) === eerstvolgende) {
+                    tegel.disabled = false;
+                  }
+                }
+              }
+              if (
+                total === parseInt(player1.firstChild.value) &&
+                currentPlayer === player2Id
+              ) {
+                player1.firstChild.disabled = false;
+              }
+              if (
+                total === parseInt(player2.firstChild.value) &&
+                currentPlayer === player1Id
+              ) {
+                player2.firstChild.disabled = false;
               }
             }
-            if(player1.firstChild || player2.firstChild){
-            if (total === parseInt(player1.firstChild?.value)) {
-              console.log(player1.firstChild)
-              player1.firstChild.disabled = false;
-            } else if (total === parseInt(player2.firstChild?.value)) {
-               console.log(player2.firstChild)
-              player2.firstChild.disabled = false;
-            } else {
-              player1.firstChild.disabled = true;
-              player2.firstChild.disabled = true;
+          } else {
+            for (tegel of divTegels.children) {
+              tegel.disabled = true;
             }
-          }}
-
+          }
+          console.log("hoi1", currentPlayer, clientId);
           if (currentPlayer !== clientId) {
-            bla = document.querySelectorAll("button");
-            bla.forEach((x) => (x.disabled = true));
+            allButtons = document.querySelectorAll("button");
+            allButtons.forEach((button) => (button.disabled = true));
           }
         }
 
@@ -253,6 +267,7 @@
         }
         if (currentPlayer === clientId) {
           btnDice.disabled = false;
+          endTurn.disabled = true;
           if (diceThrown === "yes") {
             btnDice.disabled = true;
             endTurn.disabled = false;
@@ -296,7 +311,6 @@
               selectedResults: selectedResults,
               total: total,
             };
-            console.log(payLoad);
             ws.send(JSON.stringify(payLoad));
           });
           divBoard.appendChild(b);

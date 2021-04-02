@@ -8,14 +8,11 @@ app.use(express.static(path.join(__dirname, "/public/")));
 app.get("/", (req, res) => res.sendFile(__dirname + "/index.html"));
 
 const websocketServer = require("websocket").server;
-const e = require("express");
 const httpServer = http.createServer(app);
 httpServer.listen(PORT, () => console.log("Listening.. on ", PORT));
 //hashmap clients
 const clients = {};
 let games = {};
-let startingPlayer = null;
-let currentPlayer = null;
 const wsServer = new websocketServer({
   httpServer: httpServer,
 });
@@ -42,16 +39,16 @@ wsServer.on("request", (request) => {
     const result = JSON.parse(message.utf8Data);
     //I have received a message from the client
     //a user want to create a new game
+
     if (result.method === "create") {
       const clientId = result.clientId;
       currentPlayer = clientId;
-      startingPlayer = currentPlayer;
       console.log(currentPlayer, "begin van t spel speler");
       const gameId = guid();
       games[gameId] = {
         id: gameId,
         clients: [],
-        state: createStartingState(currentPlayer),
+        state: createStartingState(clientId),
       };
 
       const payLoad = {
@@ -69,6 +66,7 @@ wsServer.on("request", (request) => {
       const clientId = result.clientId;
       const gameId = result.gameId;
       const game = games[gameId];
+
       if (game.clients.length >= 2) {
         //sorry max players reach
         return;
@@ -79,7 +77,13 @@ wsServer.on("request", (request) => {
         color: color,
       });
       //start the game
-      if (game.clients.length === 2) updateGameState();
+      if (game.clients.length === 2) {
+        let state = games[gameId].state;
+        state["player1"] = game.clients[0].clientId;
+        state["player2"] = game.clients[1].clientId;
+        games[gameId].state = state;
+        updateGameState();
+      }
       tegels = maakTegels();
       const payLoad = {
         method: "join",
@@ -90,18 +94,6 @@ wsServer.on("request", (request) => {
         clients[c.clientId].connection.send(JSON.stringify(payLoad));
       });
     }
-    //a user plays
-    if (result.method === "play") {
-      const gameId = result.gameId;
-      const ballId = result.ballId;
-      const color = result.color;
-      let state = games[gameId].state;
-      if (!state) state = {};
-
-      state[ballId] = color;
-      games[gameId].state = state;
-      updateGameState();
-    }
 
     if (result.method === "dice") {
       const gameId = result.gameId;
@@ -111,14 +103,6 @@ wsServer.on("request", (request) => {
       if (!state) state = {};
 
       results = diceArray(8);
-      // if(currentPlayer === game.clients[0].clientId) {
-      //     currentPlayer = game.clients[1].clientId
-      // } else {
-      //     currentPlayer = game.clients[0].clientId
-      // }
-      // state["currentPlayer"] = currentPlayer
-      // console.log(currentPlayer)
-
       state["results"] = results;
       state["number"] = 8;
       state["diceThrown"] = "yes";
@@ -138,7 +122,7 @@ wsServer.on("request", (request) => {
 
       if (!state) state = {};
       let hoeveelheid = 0;
-
+      console.log("hier zal iets mis zijn", number, selectedValue, results);
       for (let i = 0; i < number; i++) {
         if (String(results[i]["dice"]) === String(selectedValue["dice"])) {
           selectedResults.push(selectedValue);
@@ -165,11 +149,13 @@ wsServer.on("request", (request) => {
       const selectedTegel = parseInt(result.selectedTegel);
       let state = games[gameId].state;
       const beschikbareTegels = state["tegels"];
+      const player1 = state["player1"];
+      // const player2 = state["player2"];
       const overgeblevenTegels = beschikbareTegels.filter(
         (tegel) => tegel !== selectedTegel
       );
       state["tegels"] = overgeblevenTegels;
-      if (startingPlayer === clientId) {
+      if (player1 === clientId) {
         state["player1Tegels"].push(selectedTegel);
       } else {
         state["player2Tegels"].push(selectedTegel);
@@ -189,21 +175,22 @@ wsServer.on("request", (request) => {
       let state = games[gameId].state;
       player1Tegels = state["player1Tegels"];
       player2Tegels = state["player2Tegels"];
+      player1 = state["player1"];
       tegels = state["tegels"];
-      if (clientId === startingPlayer) {
+      if (clientId === player1) {
         if (player1Tegels.length > 0) {
           laatste = player1Tegels.pop();
           player1Tegels = player1Tegels.filter((x) => x !== laatste);
-          laatsteTegel = tegels.pop()
-          tegels = tegels.filter(x => x !== laatsteTegel)
+          laatsteTegel = tegels.pop();
+          tegels = tegels.filter((x) => x !== laatsteTegel);
           tegels.push(laatste);
         }
       } else {
         if (player2Tegels.length > 0) {
           laatste = player2Tegels.pop();
           player2Tegels = player2Tegels.filter((x) => x !== laatste);
-          laatsteTegel = tegels.pop()
-          tegels = tegels.filter(x => x !== laatsteTegel)
+          laatsteTegel = tegels.pop();
+          tegels = tegels.filter((x) => x !== laatsteTegel);
           tegels.push(laatste);
         }
       }
@@ -221,6 +208,29 @@ wsServer.on("request", (request) => {
     }
     if (result.method === "closeGames") {
       games = {};
+    }
+    if (result.method === "stolenTegel") {
+      const gameId = result.gameId;
+      const clientId = result.clientId;
+      const selectedTegel = parseInt(result.selectedTegel);
+      let state = games[gameId].state;
+      const beschikbareTegels = state["tegels"];
+      const overgeblevenTegels = beschikbareTegels.filter(
+        (tegel) => tegel !== selectedTegel
+      );
+      state["tegels"] = overgeblevenTegels;
+      if (startingPlayer === clientId) {
+        state["player1Tegels"].push(selectedTegel);
+      } else {
+        state["player2Tegels"].push(selectedTegel);
+      }
+      game = games[gameId];
+      state["currentPlayer"] = changeTurn(clientId, game.clients);
+      state["diceThrown"] = "no";
+      state["results"] = [];
+      state["selectedResults"] = [];
+      games[gameId].state = state;
+      updateGameState();
     }
   });
 
