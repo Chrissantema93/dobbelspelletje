@@ -201,6 +201,7 @@ wsServer.on("request", (request) => {
       state["number"] = 8;
       state["results"] = [];
       state["selectedResults"] = [];
+      state["diceThrown"] = "no";
       games[gameId].state = state;
       updateGameState();
     }
@@ -231,8 +232,11 @@ wsServer.on("request", (request) => {
           tegels.push(laatste);
         }
       }
-
-      tegels = tegels.slice(0).sort();
+      // console.log("voor", tegels);
+      tegels = tegels.slice(0).sort((a, b) => {
+        return parseInt(a.waarde) < parseInt(b.waarde) ? -1 : 1;
+      }); // dit werkt natuurlijk niet
+      // console.log("na", tegels);
       state["tegels"] = tegels;
       state["player1Tegels"] = player1Tegels;
       state["player2Tegels"] = player2Tegels;

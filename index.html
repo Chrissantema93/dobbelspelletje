@@ -26,11 +26,13 @@
       <div id="gameScreen">
         <label for="divPlayers">Aan de beurt:</label>
         <div id="divPlayers"></div>
+        <button id="endTurn">Beëindig beurt</button>
         <hr />
         <div id="tegels"></div>
         <hr />
-        <button id="btnDice">Throw dice</button>
-        <button id="endTurn">End turn</button>
+
+        <button id="btnDice">Gooi dobbelstenen</button>
+
         <hr />
         <div id="divBoard"></div>
         <hr />
@@ -137,9 +139,7 @@
             const b = document.createElement("button");
             b.style.width = "50px";
             b.style.height = "50px";
-            b.value = "test";
-            b.textContent = "Join Game";
-            console.log(i);
+            b.textContent = "Neem deel";
 
             b.addEventListener("click", (e) => {
               let clientName = i.value;
@@ -189,7 +189,7 @@
             b.style.width = "50px";
             b.style.height = "50px";
             b.value = "test";
-            b.textContent = "Join Game";
+            b.textContent = "Neem deel";
             const clientName = i.value;
             b.addEventListener("click", (e) => {
               let clientName = i.value;
@@ -418,7 +418,7 @@
               method: "stolenTegel",
               clientId: clientId,
               gameId: gameId,
-              selectedTegel: waarde,
+              selectedTegel: tegel,
             };
             ws.send(JSON.stringify(payLoad));
           });
