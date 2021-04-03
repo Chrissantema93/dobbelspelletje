@@ -200,7 +200,7 @@ wsServer.on("request", (request) => {
       state["player2Tegels"] = player2Tegels;
       state["number"] = 8;
       state["results"] = [];
-      state["selectedResults"] = [];
+      state["selectedResults"] = [];kij
       state["diceThrown"] = "no";
       games[gameId].state = state;
       updateGameState();
