@@ -87,6 +87,8 @@
         const payLoad = {
           method: "chatMessage",
           message: chatInput.value,
+          clientId: clientId,
+          gameId: gameId,
         };
         ws.send(JSON.stringify(payLoad));
       });
@@ -183,8 +185,10 @@
 
         if (response.method === "chatMessage") {
           const message = response.message;
+          const color = response.clientColor.toLowerCase();
           const g = document.createElement("div");
           g.textContent = message;
+          g.style.color = color;
           chatBox.prepend(g);
         }
         //create
@@ -257,7 +261,12 @@
           const player1Id = response.game.state["player1"];
           const player2Id = response.game.state["player2"];
           overgebleven = response.game.state["number"]; //dit moet beter
-
+          const gameOver = response.game.state["gameOver"];
+          if (gameOver) {
+            const winnaar = response.game.state["winnaar"];
+            const score = response.game.state["score"];
+            alert(`${winnaar} heeft gewonnen met ${score} punten!!`);
+          }
           while (divPlayers.firstChild)
             divPlayers.removeChild(divPlayers.firstChild);
           const d = document.createElement("div");
@@ -265,6 +274,9 @@
           d.textContent = response.game.clients.find(
             (x) => x.clientId === currentPlayer
           ).clientName;
+          d.style.color = response.game.clients.find(
+            (x) => x.clientId === currentPlayer
+          ).color;
           divPlayers.append(d);
 
           determinePlayer(currentPlayer, diceThrown);
@@ -343,6 +355,9 @@
           d.textContent = response.game.clients.find(
             (x) => x.clientId === currentPlayer
           ).clientName;
+          d.style.color = response.game.clients.find(
+            (x) => x.clientId === currentPlayer
+          ).color;
           divPlayers.append(d);
 
           maaktegels(speeltegels);

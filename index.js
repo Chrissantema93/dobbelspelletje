@@ -71,10 +71,16 @@ wsServer.on("request", (request) => {
     }
     if (result.method === "chatMessage") {
       message = result.message;
-
+      const clientId = result.clientId;
+      const gameId = result.gameId;
+      const game = games[gameId];
+      console.log(game.clients);
+      const naam = game.clients.find((x) => x.clientId === clientId).clientName;
+      const color = game.clients.find((x) => x.clientId === clientId).color;
       const payLoad = {
         method: "chatMessage",
-        message: message,
+        message: `${naam}: ${message}`,
+        clientColor: color,
       };
       clientList.forEach((c) => {
         clients[c].connection.send(JSON.stringify(payLoad));
@@ -91,7 +97,9 @@ wsServer.on("request", (request) => {
         //sorry max players reach
         return;
       }
-      const color = { 0: "Red", 1: "Green" }[game.clients.length];
+      const color = { 0: "Red", 1: "Green", 2: "Blue", 3: "Yellow" }[
+        game.clients.length
+      ];
       game.clients.push({
         clientId: clientId,
         color: color,
@@ -169,9 +177,11 @@ wsServer.on("request", (request) => {
       let state = games[gameId].state;
       const beschikbareTegels = state["tegels"];
       const player1 = state["player1"];
+      const player2 = state["player2"];
       const overgeblevenTegels = beschikbareTegels.filter(
         (tegel) => tegel["waarde"] !== selectedTegel["waarde"]
       );
+
       state["tegels"] = overgeblevenTegels;
       if (player1 === clientId) {
         state["player1Tegels"].push(selectedTegel);
@@ -185,6 +195,34 @@ wsServer.on("request", (request) => {
       state["number"] = 8;
       state["total"] = 0;
       state["selectedResults"] = [];
+      if (overgeblevenTegels.length === 0) {
+        console.log("het spel is klaar");
+        state["gameOver"] = true;
+        let winnaar = null;
+        let player1Tegels = state["player1Tegels"];
+        let player1Total = 0;
+        let player2Total = 0;
+        if (player1Tegels.length > 0) {
+          player1Total = player1Tegels
+            .map((x) => parseInt(x.waarde))
+            .reduce((a, b) => a + b);
+        }
+        let player2Tegels = state["player2Tegels"];
+        if (player2Tegels.length > 0) {
+          player2Total = player2Tegels
+            .map((x) => parseInt(x.waarde))
+            .reduce((a, b) => a + b);
+        }
+        if (player1Total > player2Total) {
+          winnaar = game.clients.find((x) => x.clientId === player1).clientName;
+          state["score"] = player1Total;
+        } else {
+          winnaar = game.clients.find((x) => x.clientId === player2).clientName;
+          state["score"] = player2Total;
+        }
+
+        state["winnaar"] = winnaar;
+      }
       games[gameId].state = state;
       updateGameState();
     }
@@ -200,19 +238,27 @@ wsServer.on("request", (request) => {
 
       if (player1 === clientId) {
         player1Tegels.push(selectedTegel);
-        player2Tegels = player2Tegels.filter((x) => x !== selectedTegel);
+        player2Tegels = player2Tegels.filter((x) => {
+          console.log("p1", "x", x, "selected", selectedTegel);
+          x !== selectedTegel;
+        });
       } else {
         player2Tegels.push(selectedTegel);
-        player1Tegels = player1Tegels.filter((x) => x !== selectedTegel);
+        player1Tegels = player1Tegels.filter((x) => {
+          console.log("p2", "x", x, "selected", selectedTegel);
+          x !== selectedTegel;
+        });
       }
+      console.log("p1tegels", player1Tegels);
+      console.log("p2tegels", player2Tegels);
       game = games[gameId];
       state["currentPlayer"] = changeTurn(clientId, game.clients);
       state["player1Tegels"] = player1Tegels;
       state["player2Tegels"] = player2Tegels;
       state["number"] = 8;
+      state["total"] = 0;
       state["results"] = [];
       state["selectedResults"] = [];
-      kij;
       state["diceThrown"] = "no";
       games[gameId].state = state;
       updateGameState();
@@ -232,7 +278,9 @@ wsServer.on("request", (request) => {
           laatste = player1Tegels.pop();
           player1Tegels = player1Tegels.filter((x) => x !== laatste);
           laatsteTegel = tegels.pop();
-          tegels = tegels.filter((x) => x !== laatsteTegel);
+          if (laatste < laatsteTegel) {
+            tegels = tegels.filter((x) => x !== laatsteTegel);
+          }
           tegels.push(laatste);
         }
       } else {
@@ -240,15 +288,15 @@ wsServer.on("request", (request) => {
           laatste = player2Tegels.pop();
           player2Tegels = player2Tegels.filter((x) => x !== laatste);
           laatsteTegel = tegels.pop();
-          tegels = tegels.filter((x) => x !== laatsteTegel);
+          if (laatste < laatsteTegel) {
+            tegels = tegels.filter((x) => x !== laatsteTegel);
+          }
           tegels.push(laatste);
         }
       }
-      // console.log("voor", tegels);
       tegels = tegels.slice(0).sort((a, b) => {
         return parseInt(a.waarde) < parseInt(b.waarde) ? -1 : 1;
-      }); // dit werkt natuurlijk niet
-      // console.log("na", tegels);
+      });
       state["tegels"] = tegels;
       state["player1Tegels"] = player1Tegels;
       state["player2Tegels"] = player2Tegels;
