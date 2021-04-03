@@ -233,25 +233,20 @@ wsServer.on("request", (request) => {
       const selectedTegel = result.selectedTegel;
       let state = games[gameId].state;
       const player1 = state["player1"];
-      player1Tegels = state["player1Tegels"];
-      player2Tegels = state["player2Tegels"];
-
+      const player2 = state["player2"];
+      let player1Tegels = state["player1Tegels"];
+      let player2Tegels = state["player2Tegels"];
       if (player1 === clientId) {
         player1Tegels.push(selectedTegel);
         player2Tegels = player2Tegels.filter((x) => {
-          console.log("p1", "x", x, "selected", selectedTegel);
-          x !== selectedTegel;
+          return x.waarde !== selectedTegel.waarde;
         });
-      } else {
+      } else if (player2 === clientId) {
         player2Tegels.push(selectedTegel);
         player1Tegels = player1Tegels.filter((x) => {
-          console.log("p2", "x", x, "selected", selectedTegel);
-          x !== selectedTegel;
+          return x.waarde !== selectedTegel.waarde;
         });
       }
-      console.log("p1tegels", player1Tegels);
-      console.log("p2tegels", player2Tegels);
-      game = games[gameId];
       state["currentPlayer"] = changeTurn(clientId, game.clients);
       state["player1Tegels"] = player1Tegels;
       state["player2Tegels"] = player2Tegels;
