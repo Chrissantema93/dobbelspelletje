@@ -10,6 +10,14 @@
   flex-basis: 70%;
 }
 
+#divBoard {
+  min-height: 70px;
+}
+
+#selectedDice {
+  min-height: 70px;
+}
+
 #gamesList {
   margin-top: 20px;
 }
@@ -37,4 +45,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.dice_1 {
+  background-image: url("../assets/dice_1.png");
+}
+.dice_2 {
+  background-image: url("../assets/dice_2.png");
+}
+.dice_3 {
+  background-image: url("../assets/dice_3.png");
+}
+.dice_4 {
+  background-image: url("../assets/dice_4.png");
+}
+.dice_5 {
+  background-image: url("../assets/dice_5.png");
+}
+.dice_X {
+  background-image: url("../assets/dice_6.png");
+}
+.dices:disabled {
+  opacity: 0.1;
 }
