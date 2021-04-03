@@ -177,6 +177,34 @@ wsServer.on("request", (request) => {
       games[gameId].state = state;
       updateGameState();
     }
+
+    if (result.method === "stolenTegel") {
+      const gameId = result.gameId;
+      const clientId = result.clientId;
+      const selectedTegel = result.selectedTegel;
+      let state = games[gameId].state;
+      const player1 = state["player1"];
+      player1Tegels = state["player1Tegels"];
+      player2Tegels = state["player2Tegels"];
+
+      if (player1 === clientId) {
+        player1Tegels.push(selectedTegel);
+        player2Tegels = player2Tegels.filter((x) => x !== selectedTegel);
+      } else {
+        player2Tegels.push(selectedTegel);
+        player1Tegels = player1Tegels.filter((x) => x !== selectedTegel);
+      }
+      game = games[gameId];
+      state["currentPlayer"] = changeTurn(clientId, game.clients);
+      state["player1Tegels"] = player1Tegels;
+      state["player2Tegels"] = player2Tegels;
+      state["number"] = 8;
+      state["results"] = [];
+      state["selectedResults"] = [];
+      games[gameId].state = state;
+      updateGameState();
+    }
+
     if (result.method === "endTurn") {
       const gameId = result.gameId;
       game = games[gameId];
@@ -226,32 +254,6 @@ wsServer.on("request", (request) => {
       clientList.forEach((c) => {
         clients[c].connection.send(JSON.stringify(payLoad));
       });
-    }
-    if (result.method === "stolenTegel") {
-      const gameId = result.gameId;
-      const clientId = result.clientId;
-      const selectedTegel = parseInt(result.selectedTegel);
-      let state = games[gameId].state;
-      const player1 = state["player1"];
-      player1Tegels = state["player1Tegels"];
-      player2Tegels = state["player2Tegels"];
-
-      if (player1 === clientId) {
-        player1Tegels.push(selectedTegel);
-        player2Tegels = player2Tegels.filter((x) => x !== selectedTegel);
-      } else {
-        player2Tegels.push(selectedTegel);
-        player1Tegels = player1Tegels.filter((x) => x !== selectedTegel);
-      }
-      game = games[gameId];
-      state["currentPlayer"] = changeTurn(clientId, game.clients);
-      state["player1Tegels"] = player1Tegels;
-      state["player2Tegels"] = player2Tegels;
-      state["number"] = 8;
-      state["results"] = [];
-      state["selectedResults"] = [];
-      games[gameId].state = state;
-      updateGameState();
     }
   });
 
