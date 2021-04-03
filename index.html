@@ -179,8 +179,6 @@
             const g = document.createElement("div");
             const x = document.createElement("div");
             g.classList.add("games-names");
-            g.style.width = "600px";
-            g.style.height = "50px";
             g.style.border = "thin solid green";
             x.textContent = games[property].gameName;
             x.value = games[property].id;
@@ -336,8 +334,7 @@
         }
         tegels.forEach((tegel) => {
           const b = document.createElement("button");
-          b.style.width = "60px";
-          b.style.height = "60px";
+          b.classList.add("tegeltjes");
           b.value = tegel["waarde"];
           b.textContent = `${tegel["waarde"]} --- ${tegel["punten"]}`;
           b.disabled = true;
@@ -392,8 +389,6 @@
           ) {
             b.disabled = true;
           }
-          b.style.width = "70px";
-          b.style.height = "70px";
           b.addEventListener("click", (e) => {
             const payLoad = {
               method: "selectDice",
@@ -462,8 +457,6 @@
           b.classList.add(`dice_${obje["dice"]}`);
           b.classList.add("dices");
           b.disabled = true;
-          b.style.width = "70px";
-          b.style.height = "70px";
           selectedDice.appendChild(b);
         }
       }

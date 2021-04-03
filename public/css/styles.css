@@ -45,7 +45,31 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+}
+
+.tegels {
+  height: 60px;
+  width: 60px;
+}
+.dices {
+  height: 70px;
+  width: 70px;
+}
+
+@media (max-width: 500px) {
+  .games-names {
+    display: flex;
+    flex-flow: column wrap;
+  }
+  .tegeltjes {
+    width: 50px;
+    height: 50px;
+  }
+  .dices {
+    width: 35px;
+    height: 35px;
+    background-size: contain;
+  }
 }
 
 .dice_1 {
