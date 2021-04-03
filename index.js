@@ -36,7 +36,6 @@ wsServer.on("request", (request) => {
   connection.on("open", () => console.log("opened!"));
   connection.on("close", () => {
     console.log("closed!");
-    games = {};
   });
   connection.on("message", (message) => {
     const result = JSON.parse(message.utf8Data);

@@ -287,11 +287,10 @@
                 }
               }
             } else {
-              eerstvolgende =
-                Math.max.apply(
-                  Math,
-                  availableTegels.filter((x) => x < total)
-                ) ?? 0;
+              eerstvolgende = Math.max.apply(
+                Math,
+                availableTegels.filter((x) => x < total)
+              );
               if (eerstvolgende > 1) {
                 for (tegel of divTegels.children) {
                   if (parseInt(tegel.value) === eerstvolgende) {
@@ -322,6 +321,7 @@
           if (currentPlayer !== clientId) {
             allButtons = document.querySelectorAll("button");
             allButtons.forEach((button) => (button.disabled = true));
+            sendChat.disabled = false;
           }
         }
 
