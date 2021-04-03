@@ -12,6 +12,7 @@ const httpServer = http.createServer(app);
 httpServer.listen(PORT, () => console.log("Listening.. on ", PORT));
 //hashmap clients
 const clients = {};
+const clientList = [];
 let games = {};
 const wsServer = new websocketServer({
   httpServer: httpServer,
@@ -24,6 +25,7 @@ function createStartingState(clientId) {
     currentPlayer: clientId,
     player1Tegels: [],
     player2Tegels: [],
+    gameOver: false,
   };
 }
 
@@ -33,7 +35,6 @@ wsServer.on("request", (request) => {
   connection.on("open", () => console.log("opened!"));
   connection.on("close", () => {
     console.log("closed!");
-    games = {};
   });
   connection.on("message", (message) => {
     const result = JSON.parse(message.utf8Data);
@@ -42,23 +43,28 @@ wsServer.on("request", (request) => {
 
     if (result.method === "create") {
       const clientId = result.clientId;
+      let gameName = result.gameName;
       currentPlayer = clientId;
-      console.log(currentPlayer, "begin van t spel speler");
       const gameId = guid();
+      if (gameName === "") {
+        gameName = gameId;
+      }
       games[gameId] = {
         id: gameId,
+        gameName: gameName,
         clients: [],
         state: createStartingState(clientId),
       };
-
+      game = games[gameId];
       const payLoad = {
         method: "create",
-        game: games[gameId],
+        game: game,
         games: games,
       };
 
-      const con = clients[clientId].connection;
-      con.send(JSON.stringify(payLoad));
+      clientList.forEach((c) => {
+        clients[c].connection.send(JSON.stringify(payLoad));
+      });
     }
 
     //a client want to join
@@ -208,6 +214,13 @@ wsServer.on("request", (request) => {
     }
     if (result.method === "closeGames") {
       games = {};
+      const payLoad = {
+        method: "gamesClosed",
+        games: {},
+      };
+      clientList.forEach((c) => {
+        clients[c].connection.send(JSON.stringify(payLoad));
+      });
     }
     if (result.method === "stolenTegel") {
       const gameId = result.gameId;
@@ -234,8 +247,8 @@ wsServer.on("request", (request) => {
     }
   });
 
-  //generate a new clientId
   const clientId = guid();
+  clientList.push(clientId);
   clients[clientId] = {
     connection: connection,
   };
@@ -243,6 +256,7 @@ wsServer.on("request", (request) => {
   const payLoad = {
     method: "connect",
     clientId: clientId,
+    games: games,
   };
   //send back the client connect
   connection.send(JSON.stringify(payLoad));

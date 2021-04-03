@@ -10,6 +10,10 @@
   flex-basis: 70%;
 }
 
+#gamesList {
+  margin-top: 20px;
+}
+
 #player1board {
   flex-basis: 15%;
   display: flex;
@@ -27,4 +31,10 @@
 #player2 {
   display: flex;
   flex-direction: column;
+}
+
+.games-names {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

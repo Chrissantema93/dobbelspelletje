@@ -10,9 +10,10 @@
   <body>
     <h1>dobbelspelletje</h1>
     <div id="menu">
-      <button id="btnCreate">New Game</button>
-      <button id="btnJoin">Join Game</button>
+      <label for="txtGameId">Spelnaam: </label>
       <input type="text" id="txtGameId" />
+      <button id="btnCreate">Maak spel</button>
+
       <div id="gamesList"></div>
       <button id="closeGames">Close Games</button>
     </div>
@@ -49,7 +50,6 @@
       let ws = new WebSocket(HOST);
       const btnCreate = document.getElementById("btnCreate");
       const menuDiv = document.getElementById("menu");
-      const btnJoin = document.getElementById("btnJoin");
       const txtGameId = document.getElementById("txtGameId");
       const divTegels = document.getElementById("tegels");
       const divPlayers = document.getElementById("divPlayers");
@@ -64,22 +64,13 @@
       const gameWindow = document.getElementById("gameWindow");
 
       //wiring events
-      btnJoin.addEventListener("click", (e) => {
-        if (gameId === null) gameId = txtGameId.value;
-        while (menuDiv.firstChild) menuDiv.removeChild(menuDiv.firstChild);
-        gameWindow.style.visibility = "visible";
-        const payLoad = {
-          method: "join",
-          clientId: clientId,
-          gameId: gameId,
-        };
-        ws.send(JSON.stringify(payLoad));
-      });
 
       btnCreate.addEventListener("click", (e) => {
+        gameName = txtGameId.value;
         const payLoad = {
           method: "create",
           clientId: clientId,
+          gameName: gameName,
         };
 
         ws.send(JSON.stringify(payLoad));
@@ -118,7 +109,42 @@
         const response = JSON.parse(message.data);
         //connect
         if (response.method === "connect") {
+          games = response.games;
           clientId = response.clientId;
+          while (gamesList.firstChild) {
+            gamesList.removeChild(gamesList.firstChild);
+          }
+          for (const property in games) {
+            // console.log(`${property}: ${games[property].id}`);
+            const g = document.createElement("div");
+            gameId = games[property].id;
+            g.classList.add("games-names");
+            g.style.width = "200px";
+            g.style.height = "50px";
+            g.style.border = "thin solid green";
+            g.textContent = games[property].gameName;
+            g.value = gameId;
+            const b = document.createElement("button");
+            b.style.width = "60px";
+            b.style.height = "60px";
+            b.value = "test";
+            b.textContent = "Join Game";
+            b.addEventListener("click", (e) => {
+              while (menuDiv.firstChild) {
+                menuDiv.removeChild(menuDiv.firstChild);
+              }
+              gameWindow.style.visibility = "visible";
+              const payLoad = {
+                method: "join",
+                clientId: clientId,
+                gameId: gameId,
+              };
+              ws.send(JSON.stringify(payLoad));
+            });
+            g.appendChild(b);
+            gamesList.appendChild(g);
+          }
+
           console.log("Client id Set successfully " + clientId);
         }
 
@@ -126,16 +152,48 @@
         if (response.method === "create") {
           gameId = response.game.id;
           overgebleven = response.game.number;
-          games = Object.keys(response.games);
-          for (let i = 0; i < games.length; i++) {
+          games = response.games;
+          while (gamesList.firstChild) {
+            gamesList.removeChild(gamesList.firstChild);
+          }
+          for (const property in games) {
+            // console.log(`${property}: ${games[property].id}`);
             const g = document.createElement("div");
+            const x = document.createElement("div");
+            g.classList.add("games-names");
             g.style.width = "200px";
-            g.textContent = games[i];
+            g.style.height = "50px";
+            g.style.border = "thin solid green";
+            x.textContent = games[property].gameName;
+            x.value = games[property].id;
+            g.appendChild(x);
+            const b = document.createElement("button");
+            b.style.width = "60px";
+            b.style.height = "60px";
+            b.value = "test";
+            b.textContent = "Join Game";
+            b.addEventListener("click", (e) => {
+              while (menuDiv.firstChild) {
+                menuDiv.removeChild(menuDiv.firstChild);
+              }
+              gameWindow.style.visibility = "visible";
+              const payLoad = {
+                method: "join",
+                clientId: clientId,
+                gameId: gameId,
+              };
+              ws.send(JSON.stringify(payLoad));
+            });
+            g.appendChild(b);
             gamesList.appendChild(g);
           }
           console.log("game successfully created with id " + response.game.id);
         }
-
+        if (response.method === "gamesClosed") {
+          while (gamesList.firstChild) {
+            gamesList.removeChild(gamesList.firstChild);
+          }
+        }
         //update
         if (response.method === "update") {
           if (!response.game.state) {
@@ -152,7 +210,7 @@
           const total = response.game.state["total"];
           const player1Id = response.game.state["player1"];
           const player2Id = response.game.state["player2"];
-          overgebleven = response.game.state["number"];
+          overgebleven = response.game.state["number"]; //dit moet beter
 
           determinePlayer(currentPlayer, diceThrown);
           createDices(resultaten, selectedResults);
@@ -205,7 +263,6 @@
               tegel.disabled = true;
             }
           }
-          console.log("hoi1", currentPlayer, clientId);
           if (currentPlayer !== clientId) {
             allButtons = document.querySelectorAll("button");
             allButtons.forEach((button) => (button.disabled = true));
