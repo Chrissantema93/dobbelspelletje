@@ -8,7 +8,7 @@
   </head>
 
   <body>
-    <h1>dobbelspelletje</h1>
+    <h1>Dobbelspelletje</h1>
     <div id="menu">
       <label for="txtGameId">Spelnaam: </label>
       <input type="text" id="txtGameId" />
@@ -39,6 +39,11 @@
         <div id="totaal"></div>
         <hr />
         <div id="selectedDice"></div>
+        <hr />
+        <input type="text" id="chatInput" /><span
+          ><button id="sendChat">Verstuur bericht</button></span
+        >
+        <div id="chatBox"></div>
       </div>
       <div id="player2board">
         <h2>Speler 2 :</h2>
@@ -73,8 +78,18 @@
       const btnTotal = document.getElementById("totaal");
       const selectedDice = document.getElementById("selectedDice");
       const gameWindow = document.getElementById("gameWindow");
+      const chatInput = document.getElementById("chatInput");
+      const sendChat = document.getElementById("sendChat");
+      const chatBox = document.getElementById("chatBox");
 
       //wiring events
+      sendChat.addEventListener("click", (e) => {
+        const payLoad = {
+          method: "chatMessage",
+          message: chatInput.value,
+        };
+        ws.send(JSON.stringify(payLoad));
+      });
 
       btnCreate.addEventListener("click", (e) => {
         gameName = txtGameId.value;
@@ -158,14 +173,20 @@
               };
               ws.send(JSON.stringify(payLoad));
             });
-            g.appendChild(i);
-            g.appendChild(b);
-            gamesList.appendChild(g);
+            g.append(i);
+            g.append(b);
+            gamesList.append(g);
           }
 
           console.log("Client id Set successfully " + clientId);
         }
 
+        if (response.method === "chatMessage") {
+          const message = response.message;
+          const g = document.createElement("div");
+          g.textContent = message;
+          chatBox.prepend(g);
+        }
         //create
         if (response.method === "create") {
           gameId = response.game.id;
@@ -182,7 +203,7 @@
             g.style.border = "thin solid green";
             x.textContent = games[property].gameName;
             x.value = games[property].id;
-            g.appendChild(x);
+            g.append(x);
             const i = document.createElement("input");
             i.placeholder = "je naam";
             const b = document.createElement("button");
@@ -208,9 +229,9 @@
               };
               ws.send(JSON.stringify(payLoad));
             });
-            g.appendChild(i);
-            g.appendChild(b);
-            gamesList.appendChild(g);
+            g.append(i);
+            g.append(b);
+            gamesList.append(g);
           }
           console.log("game successfully created with id " + response.game.id);
         }
@@ -244,7 +265,7 @@
           d.textContent = response.game.clients.find(
             (x) => x.clientId === currentPlayer
           ).clientName;
-          divPlayers.appendChild(d);
+          divPlayers.append(d);
 
           determinePlayer(currentPlayer, diceThrown);
           createDices(resultaten, selectedResults);
@@ -322,7 +343,7 @@
           d.textContent = response.game.clients.find(
             (x) => x.clientId === currentPlayer
           ).clientName;
-          divPlayers.appendChild(d);
+          divPlayers.append(d);
 
           maaktegels(speeltegels);
         }
@@ -338,7 +359,7 @@
           b.value = tegel["waarde"];
           b.textContent = `${tegel["waarde"]} --- ${tegel["punten"]}`;
           b.disabled = true;
-          divTegels.appendChild(b);
+          divTegels.append(b);
           b.addEventListener("click", (e) => {
             const payLoad = {
               method: "selectTegel",
@@ -401,7 +422,7 @@
             };
             ws.send(JSON.stringify(payLoad));
           });
-          divBoard.appendChild(b);
+          divBoard.append(b);
         }
       }
       function playerTegels(player1Tegels, player2Tegels) {
@@ -422,7 +443,7 @@
             };
             ws.send(JSON.stringify(payLoad));
           });
-          player1.appendChild(b);
+          player1.append(b);
         });
         player2Tegels = player2Tegels.reverse();
         while (player2.firstChild) player2.removeChild(player2.firstChild);
@@ -441,7 +462,7 @@
             };
             ws.send(JSON.stringify(payLoad));
           });
-          player2.appendChild(b);
+          player2.append(b);
         });
       }
 
@@ -457,7 +478,7 @@
           b.classList.add(`dice_${obje["dice"]}`);
           b.classList.add("dices");
           b.disabled = true;
-          selectedDice.appendChild(b);
+          selectedDice.append(b);
         }
       }
     </script>

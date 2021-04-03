@@ -46,6 +46,7 @@ wsServer.on("request", (request) => {
     if (result.method === "create") {
       const clientId = result.clientId;
       let gameName = result.gameName;
+      let gameCreatedAt = new Date();
       currentPlayer = clientId;
       const gameId = guid();
       if (gameName === "") {
@@ -54,6 +55,7 @@ wsServer.on("request", (request) => {
       games[gameId] = {
         id: gameId,
         gameName: gameName,
+        gameCreatedAt: gameCreatedAt,
         clients: [],
         state: createStartingState(clientId),
       };
@@ -68,7 +70,17 @@ wsServer.on("request", (request) => {
         clients[c].connection.send(JSON.stringify(payLoad));
       });
     }
+    if (result.method === "chatMessage") {
+      message = result.message;
 
+      const payLoad = {
+        method: "chatMessage",
+        message: message,
+      };
+      clientList.forEach((c) => {
+        clients[c].connection.send(JSON.stringify(payLoad));
+      });
+    }
     //a client want to join
     if (result.method === "join") {
       const clientId = result.clientId;
@@ -200,7 +212,8 @@ wsServer.on("request", (request) => {
       state["player2Tegels"] = player2Tegels;
       state["number"] = 8;
       state["results"] = [];
-      state["selectedResults"] = [];kij
+      state["selectedResults"] = [];
+      kij;
       state["diceThrown"] = "no";
       games[gameId].state = state;
       updateGameState();
