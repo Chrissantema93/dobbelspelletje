@@ -20,7 +20,7 @@ body {
   flex-flow: column;
   justify-content: start;
   display: none;
-  height: 80vh;
+  flex-basis:80%;
   flex-grow: 1;
 }
 
@@ -28,7 +28,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: auto;
+  padding:1vh;
 }
 
 .playerBoards {
@@ -39,8 +40,8 @@ body {
   display: none;
   border-bottom: 1px solid gray;
   flex-flow: column;
-  height: 20vh;
   flex-grow: 1;
+  flex-basis:20%;
 }
 
 #chat-wrapper {
@@ -58,18 +59,23 @@ body {
   padding: 10px;
   border: 1px solid gray;
   flex-basis: 60%;
+  display:flex;
+  flex-flow:column;
 }
 
 #divBoard {
-  height: 100px;
+  flex-basis:35%;
+  flex-grow:1;
   display: flex;
   flex-flow: row wrap;
-  justify-content: space-around;
+  justify-content: space-evenly;
 }
 #selectedDice {
-  height: 100px;
+  flex-basis:35%;
+  flex-grow:1;
   display: flex;
   flex-flow: row wrap;
+  justify-content: start;
 }
 
 #gamesList {
@@ -80,6 +86,10 @@ body {
   justify-content: space-between;
 }
 
+#totaalEnButton{
+  flex-basis:15%;
+  flex-grow: 1;
+}
 .games-names {
   display: flex;
   justify-content: space-between;
@@ -90,6 +100,10 @@ body {
   margin-bottom: 10px;
 }
 
+#playerPart{
+  flex-basis: 15%;
+  flex-grow:1;
+}
 
 #player1board {
   color: red;
@@ -117,7 +131,7 @@ body {
 #tegels {
   display: flex;
   flex-flow: row wrap;
-  justify-content: space-around;
+  justify-content: start;
   padding: 15px;
 }
 .tegeltjes {
@@ -131,11 +145,14 @@ body {
 }
 
 .dices {
+  flex: 0 0 25%;
   background-size: cover;
+  max-width:12vw;
+  max-height: 6vh;
 }
 
 #btnDice {
-  height: 100%;
+  padding:5vw;
 }
 textarea {
   resize: none;
@@ -173,23 +190,9 @@ textarea {
     width: 10vw;
     height: 7vh;
   }
-  .dices {
-    flex: 0 1 25%;
-    background-size: cover;
-    max-width:14vh;
-    max-height: 9vh;
-  }
+  
   #tegels {
     padding: 5px;
-  }
-  #chatScreen {
-    height: 10vh;
-  }
-  #chatBox {
-    height: 100%;
-  }
-  #chat-wrapper {
-    height: 5vh;
   }
   textarea {
     height: 4vh;
@@ -198,9 +201,5 @@ textarea {
     height: 100vh;
     width: 100%;
     padding: 5px;
-  }
-  #selectedDice button {
-    height: auto;
-    width: auto;
   }
 }
