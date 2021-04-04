@@ -26,22 +26,12 @@
         <div id="chatBox"></div>
       </div>
       <div id="gameWindow">
-        <div id="tegels">
-
-        </div>
+        <div id="tegels"></div>
         <div id="spel">
-          <div id="oddPlayers">
-            <div id="player1board">
-              <label for="player1Name">Speler 1:</label>
-              <div id="player1Name"></div>
-              <div id="player1"></div>
-            </div>
-
-            <!-- <div id="player3board">
-        <h4>Speler 3:</h4>
-        <div id="player3Name"></div>
-        <div id="player3"></div>
-      </div> -->
+          <div id="player1board">
+            <label for="player1Name">Speler 1:</label>
+            <div id="player1Name"></div>
+            <div id="player1"></div>
           </div>
           <div id="gameScreen">
             <label for="divPlayers">Aan de beurt:</label>
@@ -200,7 +190,7 @@
                 menuDiv.remove();
               }
               gameWindow.style.display = "flex";
-              spel.style.display = "initial";
+              spel.style.display = "flex";
               chatScreen.style.display = "flex";
               const payLoad = {
                 method: "join",
