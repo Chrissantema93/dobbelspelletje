@@ -6,19 +6,29 @@ body {
 }
 #gameWindow {
   display: flex;
-  flex-direction: row;
+  flex-flow:column wrap;
+  justify-content: space-between;
   visibility: hidden;
+  height:100%;
+}
+
+#spel{
+  display: flex;
+  flex-direction: row;
+  
 }
 #gameScreen {
   padding: 10px;
-  border: 2px solid gray;
-  flex-basis: 70%;
+  border: 1px solid gray;
+  flex-basis: 60%;
 }
 
 #divBoard {
   min-height: 70px;
+  display:flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
 }
-
 #selectedDice {
   min-height: 70px;
 }
@@ -33,8 +43,9 @@ body {
 }
 
 #player1board {
+  
   color: red;
-  flex-basis: 15%;
+  flex-basis: 20%;
   display: flex;
   flex-direction: column;
   flex:1;
@@ -45,18 +56,19 @@ body {
 }
 #player2board {
   color: green;
-  flex-basis: 15%;
+  flex-basis: 20%;
   display: flex;
   flex-direction: column;
+  flex:1;
 }
 #player2 {
   display: flex;
   flex-direction: column;
 }
 
-#player3board {
+/* #player3board {
   color: blue;
-  flex-basis: 15%;
+  flex-basis: 20%;
   display: flex;
   flex:1;
   flex-direction: column;
@@ -64,7 +76,7 @@ body {
 #player3 {
   display: flex;
   flex-direction: column;
-}
+} */
 
 .games-names {
   display: flex;
@@ -72,9 +84,15 @@ body {
   align-items: center;
 }
 
+#tegels{
+  display:flex;
+  flex-flow: row wrap;
+  justify-content:space-between;
+  padding: 15px;
+}
 .tegeltjes {
-  height: 60px;
-  width: 60px;
+  height: 70px;
+  width: 70px;
 }
 .dices {
   height: 70px;
@@ -87,13 +105,16 @@ body {
     flex-flow: column wrap;
   }
   .tegeltjes {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
   }
   .dices {
     width: 50px;
     height: 50px;
     background-size: contain;
+  }
+  #tegels{
+    padding: 5px;
   }
 }
 #btnDice {

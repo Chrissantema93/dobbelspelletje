@@ -8,7 +8,7 @@
   </head>
 
   <body>
-    <h1 id='titel'>Dobbelspelletje</h1>
+    <h1 id="titel">Dobbelspelletje</h1>
     <div id="menu">
       <label for="txtGameId">Spelnaam: </label>
       <input type="text" id="txtGameId" />
@@ -18,45 +18,47 @@
       <button id="closeGames">Close Games</button>
     </div>
     <div id="gameWindow">
-      <div id="oddPlayers">
-      <div id="player1board">
-        <h4>Speler 1:</h4>
-        <div id="player1Name"></div>
-        <div id="player1"></div>
-      </div>
-      <!-- <div id="player3board">
+      <div id="tegels"></div>
+      <div id="spel">
+        <div id="oddPlayers">
+          <div id="player1board">
+            <label for="player1Name">Speler 1:</label>
+            <div id="player1Name"></div>
+            <div id="player1"></div>
+          </div>
+
+          <!-- <div id="player3board">
         <h4>Speler 3:</h4>
         <div id="player3Name"></div>
         <div id="player3"></div>
       </div> -->
-    </div>
-      <div id="gameScreen">
-        <label for="divPlayers">Aan de beurt:</label>
-        <div id="divPlayers"></div>
-        <button id="startGame">Start Game</button>
-        <button id="endTurn">Beëindig beurt</button>
-        <hr />
-        <div id="tegels"></div>
-        <hr />
+        </div>
+        <div id="gameScreen">
+          <label for="divPlayers">Aan de beurt:</label>
+          <div id="divPlayers"></div>
+          <button id="startGame">Start Game</button>
+          <button id="endTurn">Beëindig beurt</button>
+          <hr />
 
-        <button id="btnDice">Gooi dobbelstenen</button>
+          <button id="btnDice">Gooi dobbelstenen</button>
 
-        <hr />
-        <div id="divBoard"></div>
-        <hr />
-        <div id="totaal"></div>
-        <hr />
-        <div id="selectedDice"></div>
-        <hr />
-        <input type="text" id="chatInput" /><span
-          ><button id="sendChat">Verstuur bericht</button></span
-        >
-        <div id="chatBox"></div>
-      </div>
-      <div id="player2board">
-        <h4>Speler 2:</h4>
-        <div id="player2Name"></div>
-        <div id="player2"></div>
+          <hr />
+          <div id="divBoard"></div>
+          <hr />
+          <div id="totaal"></div>
+          <hr />
+          <div id="selectedDice"></div>
+          <hr />
+          <input type="text" id="chatInput" /><span
+            ><button id="sendChat">Verstuur bericht</button></span
+          >
+          <div id="chatBox"></div>
+        </div>
+        <div id="player2board">
+          <label for="player1Name">Speler 2:</label>
+          <div id="player2Name"></div>
+          <div id="player2"></div>
+        </div>
       </div>
     </div>
     <script>
@@ -82,7 +84,7 @@
       const gamesList = document.getElementById("gamesList");
       const btnDice = document.getElementById("btnDice");
       const endTurn = document.getElementById("endTurn");
-      const startGame = document.getElementById("startGame")
+      const startGame = document.getElementById("startGame");
       const closeGames = document.getElementById("closeGames");
       const btnTotal = document.getElementById("totaal");
       const selectedDice = document.getElementById("selectedDice");
@@ -94,14 +96,13 @@
       //wiring events
 
       startGame.addEventListener("click", (e) => {
-        
-        endTurn.style.display = 'initial'
+        endTurn.style.display = "initial";
         const payLoad = {
-          method: 'startGame',
-          gameId: gameId
-        }
-        ws.send(JSON.stringify(payLoad))
-      })
+          method: "startGame",
+          gameId: gameId,
+        };
+        ws.send(JSON.stringify(payLoad));
+      });
 
       sendChat.addEventListener("click", (e) => {
         const payLoad = {
@@ -185,7 +186,11 @@
               while (menuDiv.firstChild) {
                 menuDiv.removeChild(menuDiv.firstChild);
               }
+              if (menuDiv) {
+                menuDiv.remove();
+              }
               gameWindow.style.visibility = "visible";
+              spel.style.visibility = "visible";
               const payLoad = {
                 method: "join",
                 clientId: clientId,
@@ -197,6 +202,10 @@
             g.append(i);
             g.append(b);
             gamesList.append(g);
+            if(gamesList.firstChild){
+              btnCreate.disabled= true
+              txtGameId.disabled = true
+            }
           }
 
           console.log("Client id Set successfully " + clientId);
@@ -255,6 +264,10 @@
             g.append(i);
             g.append(b);
             gamesList.append(g);
+            if(gamesList.firstChild){
+              btnCreate.disabled= true
+              txtGameId.disabled = true
+            }
           }
           console.log("game successfully created with id " + response.game.id);
         }
@@ -262,17 +275,19 @@
           while (gamesList.firstChild) {
             gamesList.removeChild(gamesList.firstChild);
           }
+          btnCreate.disabled= false
+          txtGameId.disabled = false
         }
         //update
         if (response.method === "update") {
           if (!response.game.state) {
             return;
           }
-          if(endTurn){
-          endTurn.style.display = "initial"
+          if (endTurn) {
+            endTurn.style.display = "initial";
           }
-          if(startGame){
-            startGame.remove()
+          if (startGame) {
+            startGame.remove();
           }
           const currentPlayer = response.game.state["currentPlayer"];
           const diceThrown = response.game.state["diceThrown"];
@@ -366,12 +381,13 @@
           const game = response.game;
           console.log("currentPlayer".currentPlayer);
           const speeltegels = response.game.state.tegels;
-          const titel = document.getElementById("titel")
-          if(endTurn){
-          endTurn.style.display = "none"
+          const titel = document.getElementById("titel");
+          if (endTurn) {
+            endTurn.style.display = "none";
           }
-          if(titel){
-          titel.remove()}
+          if (titel) {
+            titel.remove();
+          }
           if (game.clients.length === 2) {
             player1Name.textContent = game.clients[0].clientName;
             player2Name.textContent = game.clients[1].clientName;
@@ -391,6 +407,12 @@
           divPlayers.append(d);
 
           maaktegels(speeltegels);
+          allButtons = document.querySelectorAll("button");
+          allButtons.forEach((button) => (button.disabled = true));
+          if(clientId === currentPlayer){
+            startGame.disabled = false;
+          }
+          sendChat.disabled = false;
         }
       };
 
@@ -427,9 +449,10 @@
         }
         if (currentPlayer === clientId) {
           btnDice.disabled = false;
-          endTurn.disabled = false;
+          
           if (diceThrown === "yes") {
             btnDice.disabled = true;
+            endTurn.disabled = false;
           } else {
             btnDice.disabled = false;
           }

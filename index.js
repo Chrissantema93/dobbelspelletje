@@ -23,11 +23,11 @@ function createStartingState(clientId) {
     tegels: maakTegels(),
     number: 8,
     currentPlayer: clientId,
-    player1Tegels: [],
-    player2Tegels: [],
     gameStarted: false,
     gameOver: false,
     ongeldigeWorp: false,
+    player1Tegels: [],
+    player2Tegels: []
   };
 }
 
@@ -75,7 +75,6 @@ wsServer.on("request", (request) => {
       const clientId = result.clientId;
       const gameId = result.gameId;
       const game = games[gameId];
-      console.log(game.clients);
       const naam = game.clients.find((x) => x.clientId === clientId).clientName;
       const color = game.clients.find((x) => x.clientId === clientId).color;
       const payLoad = {
@@ -92,8 +91,8 @@ wsServer.on("request", (request) => {
       const gameId = result.gameId
       let state = games[gameId].state;
       const game = games[gameId];
-      for(let i = 0; i < game.clients.length ; i++){
-        state[`player${i}`] = game.clients[i].clientId;
+      for(let i = 1; i <= game.clients.length ; i++){
+        state[`player${i}`] = game.clients[i-1].clientId;
       }
         games[gameId].state = state;
         const payLoad = {
