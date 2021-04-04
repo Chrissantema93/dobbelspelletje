@@ -27,11 +27,17 @@ body {
   margin-top: 20px;
 }
 
+#oddPlayers{
+  display:flex;
+  flex-flow: column wrap;
+}
+
 #player1board {
   color: red;
   flex-basis: 15%;
   display: flex;
   flex-direction: column;
+  flex:1;
 }
 #player1 {
   display: flex;
@@ -44,6 +50,18 @@ body {
   flex-direction: column;
 }
 #player2 {
+  display: flex;
+  flex-direction: column;
+}
+
+#player3board {
+  color: blue;
+  flex-basis: 15%;
+  display: flex;
+  flex:1;
+  flex-direction: column;
+}
+#player3 {
   display: flex;
   flex-direction: column;
 }

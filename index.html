@@ -18,11 +18,18 @@
       <button id="closeGames">Close Games</button>
     </div>
     <div id="gameWindow">
+      <div id="oddPlayers">
       <div id="player1board">
         <h4>Speler 1:</h4>
         <div id="player1Name"></div>
         <div id="player1"></div>
       </div>
+      <!-- <div id="player3board">
+        <h4>Speler 3:</h4>
+        <div id="player3Name"></div>
+        <div id="player3"></div>
+      </div> -->
+    </div>
       <div id="gameScreen">
         <label for="divPlayers">Aan de beurt:</label>
         <div id="divPlayers"></div>
@@ -330,7 +337,7 @@
               tegel.disabled = true;
             }
           }
-          if (currentPlayer !== clientId) {
+          if (currentPlayer !== clientId || gameOver === true) {
             allButtons = document.querySelectorAll("button");
             allButtons.forEach((button) => (button.disabled = true));
             sendChat.disabled = false;

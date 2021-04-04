@@ -204,13 +204,13 @@ wsServer.on("request", (request) => {
         let player2Total = 0;
         if (player1Tegels.length > 0) {
           player1Total = player1Tegels
-            .map((x) => parseInt(x.waarde))
+            .map((x) => parseInt(x.punten))
             .reduce((a, b) => a + b);
         }
         let player2Tegels = state["player2Tegels"];
         if (player2Tegels.length > 0) {
           player2Total = player2Tegels
-            .map((x) => parseInt(x.waarde))
+            .map((x) => parseInt(x.punten))
             .reduce((a, b) => a + b);
         }
         if (player1Total > player2Total) {
