@@ -33,6 +33,7 @@
             <div id="player1Name"></div>
             <div id="player1"></div>
           </div>
+
           <div id="gameScreen">
             <div id="playerPart">
               <label for="divPlayers">Aan de beurt:</label>
@@ -40,15 +41,16 @@
               <button id="startGame">Start Game</button>
               <button id="endTurn">Beëindig beurt</button>
             </div>
-            <label for="selectDice">Gekozen getallen</label>
+            
+            <div id="totaal-wrapper">
+              <label for="totaal">Totaal gegooide ogen: </label>
+              <span id="totaal"></span>
+            </div>
             <div id="selectedDice"></div>
             <label for="divBoard">Gegooide dobbelstenen</label>
             <div id="divBoard"></div>
             <div id="totaalEnButton">
-              <div id="totaal-wrapper">
-                <label for="totaal">Totaal gegooide ogen: </label>
-                <span id="totaal"></span>
-              </div>
+              
               <div id="buttonWrapper">
                 <button id="btnDice">Gooi dobbelstenen</button>
               </div>
@@ -351,13 +353,15 @@
                 player1.firstChild &&
                 total === parseInt(player1.firstChild.value) &&
                 currentPlayer === player2Id
+                && diceThrown === 'no'
               ) {
                 player1.firstChild.disabled = false;
               }
               if (
                 player2.firstChild &&
                 total === parseInt(player2.firstChild.value) &&
-                currentPlayer === player1Id
+                currentPlayer === player1Id &&
+                diceThrown === 'no'
               ) {
                 player2.firstChild.disabled = false;
               }
@@ -373,7 +377,7 @@
             sendChat.disabled = false;
           }
 
-          if (ongeldigeWorp) {
+          if (ongeldigeWorp && currentPlayer === currentPlayer) {
             allButtons = document.querySelectorAll("button");
             allButtons.forEach((button) => (button.disabled = true));
             sendChat.disabled = false;
