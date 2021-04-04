@@ -228,7 +228,7 @@
           const g = document.createElement("div");
           g.textContent = message;
           g.style.color = color;
-          chatBox.prepend(g);
+          chatBox.append(g);
         }
         //create
         if (response.method === "create") {
