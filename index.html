@@ -380,6 +380,9 @@
             endTurn.disabled = false;
           }
         }
+        if(resultaten.length === 0) {
+          btnDice.disabled=true;
+        }
 
         //join
         if (response.method === "join") {
