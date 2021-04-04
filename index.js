@@ -285,9 +285,9 @@ wsServer.on("request", (request) => {
         if (player1Tegels.length > 0) {
           laatste = player1Tegels.pop();
           player1Tegels = player1Tegels.filter((x) => x !== laatste);
-          laatsteTegel = tegels.pop();
-          if (laatste < laatsteTegel) {
-            tegels = tegels.filter((x) => x !== laatsteTegel);
+          laatsteTegel = tegels.slice(0).pop();
+          if (laatste.waarde < laatsteTegel.waarde) {
+            tegels = tegels.filter((x) => x.waarde !== laatsteTegel.waarde);
           }
           tegels.push(laatste);
         }
@@ -295,9 +295,9 @@ wsServer.on("request", (request) => {
         if (player2Tegels.length > 0) {
           laatste = player2Tegels.pop();
           player2Tegels = player2Tegels.filter((x) => x !== laatste);
-          laatsteTegel = tegels.pop();
-          if (laatste < laatsteTegel) {
-            tegels = tegels.filter((x) => x !== laatsteTegel);
+          laatsteTegel = tegels.slice(0).pop();
+          if (laatste.waarde < laatsteTegel.waarde) {
+            tegels = tegels.filter((x) => x.waarde !== laatsteTegel.waarde);
           }
           tegels.push(laatste);
         }
