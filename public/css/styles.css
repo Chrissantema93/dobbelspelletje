@@ -117,9 +117,8 @@ body {
   padding: 15px;
 }
 .tegeltjes {
-  height: 70px;
-  width: 70px;
-  flex-basis:12.5%;
+
+  flex:0 1 12.5%;
 }
 .tegeltjes:enabled{
   background-color: rgb(27, 235, 27);
@@ -127,11 +126,12 @@ body {
 .tegeltjes:disabled {
   background-color: initial;
 }
-.dices {
-  height: 70px;
-  width: 70px;
-}
 
+.dices{
+  height:70px;
+  width:70px;
+  background-size: cover;
+}
 
 #btnDice {
   height: 5vh;
@@ -176,9 +176,10 @@ textarea {
     height: 7vh;
   }
   .dices {
-    width: 10vw;
-    height: 7vh;
+    flex:0 1 25%;
     background-size: cover;
+    height:auto;
+    max-height:10vh;
   }
   #tegels{
     padding: 5px;
