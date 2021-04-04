@@ -1,46 +1,58 @@
 body {
   margin: 0;
   padding: 0;
-  
+  height: auto;
+  width: auto;
 }
-* {
+*,
+*:before,
+*:after {
   box-sizing: border-box;
 }
-#container{
-  height:100vh;
-  width:100vw;
+#container {
+  height: 100%;
+  width: auto;
+  display: flex;
+  flex-direction: column;
 }
 #gameWindow {
   display: flex;
-  flex-flow:column;
+  flex-flow: column;
   justify-content: start;
   display: none;
-  height:80vh;
+  height: 80vh;
+  flex-grow: 1;
 }
 
 #buttonWrapper {
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
+}
+
+.playerBoards {
+  padding: 5px;
 }
 
 #chatScreen {
   display: none;
-  border-bottom:1px solid gray;
+  border-bottom: 1px solid gray;
   flex-flow: column;
-  height:20vh;
+  height: 20vh;
+  flex-grow: 1;
 }
 
 #chat-wrapper {
-  display:flex;
-  flex-direction:row;
-  justify-content: space-around;
-  align-items:center;
-}
-#spel{
   display: flex;
   flex-direction: row;
-  
+  justify-content: space-around;
+  align-items: center;
+}
+#spel {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
 }
 #gameScreen {
   padding: 10px;
@@ -50,17 +62,32 @@ body {
 
 #divBoard {
   height: 100px;
-  display:flex;
+  display: flex;
   flex-flow: row wrap;
   justify-content: space-around;
 }
 #selectedDice {
   height: 100px;
+  display: flex;
+  flex-flow: row wrap;
 }
 
 #gamesList {
   margin-top: 20px;
-  margin-bottom:20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+}
+
+.games-names {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid gray;
+  border-bottom: 1px solid gray;
+  padding: 5px;
+  margin-bottom: 10px;
 }
 
 /* #oddPlayers{
@@ -69,12 +96,11 @@ body {
 } */
 
 #player1board {
-  
   color: red;
   flex-basis: 20%;
   display: flex;
-  flex-flow:column wrap;
-  flex:1;
+  flex-flow: column wrap;
+  flex: 1;
 }
 #player1 {
   display: flex;
@@ -84,8 +110,8 @@ body {
   color: green;
   flex-basis: 20%;
   display: flex;
-  flex-flow:column wrap;
-  flex:1;
+  flex-flow: column wrap;
+  flex: 1;
 }
 #player2 {
   display: flex;
@@ -104,45 +130,37 @@ body {
   flex-direction: column;
 } */
 
-.games-names {
+#tegels {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-#tegels{
-  display:flex;
   flex-flow: row wrap;
-  justify-content:space-around;
+  justify-content: space-around;
   padding: 15px;
 }
 .tegeltjes {
-
-  flex:0 1 12.5%;
+  flex: 0 1 12.5%;
 }
-.tegeltjes:enabled{
+.tegeltjes:enabled {
   background-color: rgb(27, 235, 27);
 }
 .tegeltjes:disabled {
   background-color: initial;
 }
 
-.dices{
-  height:70px;
-  width:70px;
+.dices {
   background-size: cover;
 }
 
 #btnDice {
-  height: 5vh;
+  height: 100%;
 }
 textarea {
   resize: none;
+  width: 100%;
 }
 
-#chatBox{
+#chatBox {
+  padding: 5px;
   overflow: scroll;
-  height:70%;
 }
 .dice_1 {
   background-image: url("../assets/dice_1.png");
@@ -167,26 +185,37 @@ textarea {
 }
 
 @media (max-width: 500px) {
-  .games-names {
-    display: flex;
-    flex-flow: column;
-  }
   .tegeltjes {
     width: 10vw;
     height: 7vh;
   }
   .dices {
-    flex:0 1 25%;
+    flex: 0 1 25%;
     background-size: cover;
-    height:auto;
-    max-height:10vh;
+    max-height: 10vh;
   }
-  #tegels{
+  #tegels {
     padding: 5px;
-    
   }
   #chatScreen {
-    height:10vh;
+    height: 10vh;
   }
-  
+  #chatBox {
+    height: 100%;
+  }
+  #chat-wrapper {
+    height: 5vh;
+  }
+  textarea {
+    height: 4vh;
+  }
+  #container {
+    height: 100vh;
+    width: 100%;
+    padding: 5px;
+  }
+  #selectedDice button {
+    height: auto;
+    width: auto;
+  }
 }

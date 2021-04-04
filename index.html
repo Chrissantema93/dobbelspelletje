@@ -20,7 +20,7 @@
       </div>
       <div id="chatScreen">
         <div id="chat-wrapper">
-          <textarea id="chatInput" rows="2" cols="32"></textarea>
+          <textarea id="chatInput"></textarea>
           <span><button id="sendChat">Verstuur bericht</button></span>
         </div>
         <div id="chatBox"></div>
@@ -28,34 +28,33 @@
       <div id="gameWindow">
         <div id="tegels"></div>
         <div id="spel">
-          <div id="player1board">
+          <div id="player1board" class="playerBoards">
             <label for="player1Name">Speler 1:</label>
             <div id="player1Name"></div>
-            <div id="player1"></div>
+            <div id="player1" class="playerBoards"></div>
           </div>
           <div id="gameScreen">
             <div id="playerPart">
-            <label for="divPlayers">Aan de beurt:</label>
-            <span id="divPlayers"></span>
-            <button id="startGame">Start Game</button>
-            <button id="endTurn">Beëindig beurt</button>
-            <hr />
-          </div>
+              <label for="divPlayers">Aan de beurt:</label>
+              <span id="divPlayers"></span>
+              <button id="startGame">Start Game</button>
+              <button id="endTurn">Beëindig beurt</button>
+              <hr />
+            </div>
             <div id="selectedDice"></div>
             <hr />
             <div id="divBoard"></div>
             <hr />
-            <div id = "totaalEnButton">
-            <label for="totaal">Totaal gegooide ogen: </label>
-            <span id="totaal"></span>
-            <hr />
-            <div id="buttonWrapper">
-              <button id="btnDice">Gooi dobbelstenen</button>
+            <div id="totaalEnButton">
+              <label for="totaal">Totaal gegooide ogen: </label>
+              <span id="totaal"></span>
+              <hr />
+              <div id="buttonWrapper">
+                <button id="btnDice">Gooi dobbelstenen</button>
+              </div>
             </div>
           </div>
-            
-          </div>
-          <div id="player2board">
+          <div id="player2board" class="playerBoards">
             <label for="player1Name">Speler 2:</label>
             <div id="player2Name"></div>
             <div id="player2"></div>
@@ -171,15 +170,11 @@
             const g = document.createElement("div");
             gameId = games[property].id;
             g.classList.add("games-names");
-            g.style.height = "50px";
-            g.style.border = "thin solid green";
             g.textContent = games[property].gameName;
             g.value = gameId;
             const i = document.createElement("input");
             i.placeholder = "je naam";
             const b = document.createElement("button");
-            b.style.width = "50px";
-            b.style.height = "50px";
             b.textContent = "Neem deel";
 
             b.addEventListener("click", (e) => {
@@ -237,16 +232,12 @@
             const g = document.createElement("div");
             const x = document.createElement("div");
             g.classList.add("games-names");
-            g.style.border = "thin solid green";
             x.textContent = games[property].gameName;
             x.value = games[property].id;
             g.append(x);
             const i = document.createElement("input");
             i.placeholder = "je naam";
             const b = document.createElement("button");
-            b.style.width = "50px";
-            b.style.height = "50px";
-            b.value = "test";
             b.textContent = "Neem deel";
             const clientName = i.value;
             b.addEventListener("click", (e) => {
@@ -271,7 +262,7 @@
             g.append(b);
             gamesList.append(g);
             if (gamesList.firstChild) {
-              btnCreate.disabled = true;
+              // btnCreate.disabled = true;
               txtGameId.disabled = true;
             }
           }
@@ -293,7 +284,7 @@
             startGame.remove();
           }
           if (endTurn) {
-            endTurn.style.display = "initial";
+            endTurn.style.display = "flex";
           }
 
           const currentPlayer = response.game.state["currentPlayer"];
@@ -316,7 +307,6 @@
           while (divPlayers.firstChild)
             divPlayers.removeChild(divPlayers.firstChild);
           const d = document.createElement("span");
-          d.style.width = "200px";
           d.textContent = response.game.clients.find(
             (x) => x.clientId === currentPlayer
           ).clientName;
@@ -404,7 +394,6 @@
             divPlayers.removeChild(divPlayers.firstChild);
           const currentPlayer = response.game.state["currentPlayer"];
           const d = document.createElement("span");
-          d.style.width = "200px";
           d.textContent = response.game.clients.find(
             (x) => x.clientId === currentPlayer
           ).clientName;
@@ -548,7 +537,6 @@
         for (let i = 0; i < selectedResults?.length; i++) {
           const b = document.createElement("button");
           obje = selectedResults[i];
-          // b.textContent = obje["dice"];
           b.value = obje["value"];
           b.classList.add(`dice_${obje["dice"]}`);
           b.classList.add("dices");
