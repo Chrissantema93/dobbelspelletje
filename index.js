@@ -25,6 +25,7 @@ function createStartingState(clientId) {
     currentPlayer: clientId,
     player1Tegels: [],
     player2Tegels: [],
+    gameStarted: false,
     gameOver: false,
     ongeldigeWorp: false,
   };
@@ -86,6 +87,26 @@ wsServer.on("request", (request) => {
         clients[c].connection.send(JSON.stringify(payLoad));
       });
     }
+
+    if(result.method === 'startGame'){
+      const gameId = result.gameId
+      let state = games[gameId].state;
+      const game = games[gameId];
+      for(let i = 0; i < game.clients.length ; i++){
+        state[`player${i}`] = game.clients[i].clientId;
+      }
+        games[gameId].state = state;
+        const payLoad = {
+          method: "join",
+          game: game,
+        };
+        //loop through all clients and tell them that people has joined
+        game.clients.forEach((c) => {
+          clients[c.clientId].connection.send(JSON.stringify(payLoad));
+        });
+        updateGameState();
+    }
+
     //a client want to join
     if (result.method === "join") {
       const clientId = result.clientId;
@@ -93,7 +114,7 @@ wsServer.on("request", (request) => {
       const game = games[gameId];
       const clientName = result.clientName;
 
-      if (game.clients.length >= 2) {
+      if (game.clients.length > 3) {
         //sorry max players reach
         return;
       }
@@ -106,13 +127,6 @@ wsServer.on("request", (request) => {
         clientName: clientName,
       });
       //start the game
-      if (game.clients.length === 2) {
-        let state = games[gameId].state;
-        state["player1"] = game.clients[0].clientId;
-        state["player2"] = game.clients[1].clientId;
-        games[gameId].state = state;
-        updateGameState();
-      }
       tegels = maakTegels();
       const payLoad = {
         method: "join",

@@ -33,6 +33,7 @@
       <div id="gameScreen">
         <label for="divPlayers">Aan de beurt:</label>
         <div id="divPlayers"></div>
+        <button id="startGame">Start Game</button>
         <button id="endTurn">Beëindig beurt</button>
         <hr />
         <div id="tegels"></div>
@@ -81,6 +82,7 @@
       const gamesList = document.getElementById("gamesList");
       const btnDice = document.getElementById("btnDice");
       const endTurn = document.getElementById("endTurn");
+      const startGame = document.getElementById("startGame")
       const closeGames = document.getElementById("closeGames");
       const btnTotal = document.getElementById("totaal");
       const selectedDice = document.getElementById("selectedDice");
@@ -90,6 +92,17 @@
       const chatBox = document.getElementById("chatBox");
 
       //wiring events
+
+      startGame.addEventListener("click", (e) => {
+        
+        endTurn.style.display = 'initial'
+        const payLoad = {
+          method: 'startGame',
+          gameId: gameId
+        }
+        ws.send(JSON.stringify(payLoad))
+      })
+
       sendChat.addEventListener("click", (e) => {
         const payLoad = {
           method: "chatMessage",
@@ -150,7 +163,6 @@
             gamesList.removeChild(gamesList.firstChild);
           }
           for (const property in games) {
-            // console.log(`${property}: ${games[property].id}`);
             const g = document.createElement("div");
             gameId = games[property].id;
             g.classList.add("games-names");
@@ -256,7 +268,12 @@
           if (!response.game.state) {
             return;
           }
-
+          if(endTurn){
+          endTurn.style.display = "initial"
+          }
+          if(startGame){
+            startGame.remove()
+          }
           const currentPlayer = response.game.state["currentPlayer"];
           const diceThrown = response.game.state["diceThrown"];
           const resultaten = response.game.state["results"];
@@ -350,6 +367,9 @@
           console.log("currentPlayer".currentPlayer);
           const speeltegels = response.game.state.tegels;
           const titel = document.getElementById("titel")
+          if(endTurn){
+          endTurn.style.display = "none"
+          }
           if(titel){
           titel.remove()}
           if (game.clients.length === 2) {
