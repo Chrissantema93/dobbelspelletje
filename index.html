@@ -31,7 +31,7 @@
           <div id="player1board" class="playerBoards">
             <label for="player1Name">Speler 1:</label>
             <div id="player1Name"></div>
-            <div id="player1" class="playerBoards"></div>
+            <div id="player1"></div>
           </div>
           <div id="gameScreen">
             <div id="playerPart">
@@ -46,9 +46,9 @@
             <div id="divBoard"></div>
             <div id="totaalEnButton">
               <div id="totaal-wrapper">
-              <label for="totaal">Totaal gegooide ogen: </label>
-              <span id="totaal"></span>
-            </div>
+                <label for="totaal">Totaal gegooide ogen: </label>
+                <span id="totaal"></span>
+              </div>
               <div id="buttonWrapper">
                 <button id="btnDice">Gooi dobbelstenen</button>
               </div>
@@ -297,6 +297,7 @@
           const total = response.game.state["total"];
           const player1Id = response.game.state["player1"];
           const player2Id = response.game.state["player2"];
+          const ongeldigeWorp = response.game.state["ongeldigeWorp"];
           overgebleven = response.game.state["number"]; //dit moet beter
           const gameOver = response.game.state["gameOver"];
           if (gameOver) {
@@ -370,6 +371,13 @@
             allButtons = document.querySelectorAll("button");
             allButtons.forEach((button) => (button.disabled = true));
             sendChat.disabled = false;
+          }
+
+          if (ongeldigeWorp) {
+            allButtons = document.querySelectorAll("button");
+            allButtons.forEach((button) => (button.disabled = true));
+            sendChat.disabled = false;
+            endTurn.disabled = false;
           }
         }
 
@@ -498,6 +506,7 @@
           b.textContent = `${tegel["waarde"]} --- ${tegel["punten"]}`;
           b.value = waarde;
           b.disabled = true;
+          b.classList.add("playerTegels");
           b.addEventListener("click", (e) => {
             const payLoad = {
               method: "stolenTegel",
@@ -517,6 +526,7 @@
           b.textContent = `${tegel["waarde"]} --- ${tegel["punten"]}`;
           b.value = waarde;
           b.disabled = true;
+          b.classList.add("playerTegels");
           b.addEventListener("click", (e) => {
             const payLoad = {
               method: "stolenTegel",

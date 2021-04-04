@@ -26,6 +26,8 @@ function createStartingState(clientId) {
     gameStarted: false,
     gameOver: false,
     ongeldigeWorp: false,
+    results: [],
+    selectedResults : [],
     player1Tegels: [],
     player2Tegels: []
   };
@@ -144,10 +146,17 @@ wsServer.on("request", (request) => {
 
       if (!state) state = {};
       number = state["number"];
-      results = diceArray(number);
+      const selectedResults = state["selectedResults"]
+      const results = diceArray(number);
+      
+      if(selectedResults.length > 0){
+        let checker = (arr, target) => target.every(v => arr.includes(v));
+        state["ongeldigeWorp"] = checker(selectedResults.map(x=> x.dice), results.map(x => x.dice))
+      }
+      
       state["results"] = results;
       state["diceThrown"] = "yes";
-      state["availableTegels"] = maakTegels();
+      // state["availableTegels"] = maakTegels();
       games[gameId].state = state;
       updateGameState();
     }
@@ -314,6 +323,7 @@ wsServer.on("request", (request) => {
       state["total"] = 0;
       state["results"] = [];
       state["selectedResults"] = [];
+      state["ongeldigeWorp"] = false;
       games[gameId].state = state;
       updateGameState();
     }
