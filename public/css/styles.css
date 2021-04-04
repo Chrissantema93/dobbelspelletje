@@ -8,8 +8,15 @@ body {
   display: flex;
   flex-flow:column wrap;
   justify-content: space-between;
-  visibility: hidden;
+  display: none;
   height:100%;
+}
+
+#chatScreen {
+  display: none;
+  border-top:1px solid gray;
+  margin-top:5px;
+  flex-flow: column wrap;
 }
 
 #spel{
@@ -24,13 +31,13 @@ body {
 }
 
 #divBoard {
-  min-height: 70px;
+  min-height: 100px;
   display:flex;
   flex-flow: row wrap;
   justify-content: space-around;
 }
 #selectedDice {
-  min-height: 70px;
+  min-height: 100px;
 }
 
 #gamesList {
@@ -87,12 +94,18 @@ body {
 #tegels{
   display:flex;
   flex-flow: row wrap;
-  justify-content:space-between;
+  justify-content:space-around;
   padding: 15px;
 }
 .tegeltjes {
   height: 70px;
   width: 70px;
+}
+.tegeltjes:enabled{
+  background-color: rgb(27, 235, 27);
+}
+.tegeltjes:disabled {
+  background-color: initial;
 }
 .dices {
   height: 70px;
@@ -105,8 +118,8 @@ body {
     flex-flow: column wrap;
   }
   .tegeltjes {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
   }
   .dices {
     width: 50px;
@@ -115,12 +128,20 @@ body {
   }
   #tegels{
     padding: 5px;
+    min-height:90px;
   }
 }
 #btnDice {
   height: 30px;
 }
+textarea {
+  resize: none;
+}
 
+#chatBox{
+  overflow: scroll;
+  height:80px;
+}
 .dice_1 {
   background-image: url("../assets/dice_1.png");
 }

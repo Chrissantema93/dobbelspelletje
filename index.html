@@ -35,7 +35,7 @@
         </div>
         <div id="gameScreen">
           <label for="divPlayers">Aan de beurt:</label>
-          <div id="divPlayers"></div>
+          <span id="divPlayers"></span>
           <button id="startGame">Start Game</button>
           <button id="endTurn">Beëindig beurt</button>
           <hr />
@@ -45,14 +45,10 @@
           <hr />
           <div id="divBoard"></div>
           <hr />
-          <div id="totaal"></div>
+          <label for="totaal">Totaal gegooide ogen: </label>
+          <span id="totaal"></span>
           <hr />
           <div id="selectedDice"></div>
-          <hr />
-          <input type="text" id="chatInput" /><span
-            ><button id="sendChat">Verstuur bericht</button></span
-          >
-          <div id="chatBox"></div>
         </div>
         <div id="player2board">
           <label for="player1Name">Speler 2:</label>
@@ -60,6 +56,13 @@
           <div id="player2"></div>
         </div>
       </div>
+    </div>
+    <div id='chatScreen'>
+      <div>
+      <textarea id="chatInput" rows='2' cols ='32'></textarea>
+      <span><button id="sendChat">Verstuur bericht</button></span>
+    </div>
+      <div id="chatBox"></div>
     </div>
     <script>
       //HTML elements
@@ -92,7 +95,7 @@
       const chatInput = document.getElementById("chatInput");
       const sendChat = document.getElementById("sendChat");
       const chatBox = document.getElementById("chatBox");
-
+      const chatScreen = document.getElementById("chatScreen")
       //wiring events
 
       startGame.addEventListener("click", (e) => {
@@ -105,9 +108,11 @@
       });
 
       sendChat.addEventListener("click", (e) => {
+        const text = chatInput.value 
+        chatInput.value = ""
         const payLoad = {
           method: "chatMessage",
-          message: chatInput.value,
+          message: text,
           clientId: clientId,
           gameId: gameId,
         };
@@ -181,7 +186,7 @@
             b.addEventListener("click", (e) => {
               let clientName = i.value;
               if (clientName === "") {
-                clientName = clientId;
+                clientName = clientId.substr(0, 8);
               }
               while (menuDiv.firstChild) {
                 menuDiv.removeChild(menuDiv.firstChild);
@@ -189,8 +194,9 @@
               if (menuDiv) {
                 menuDiv.remove();
               }
-              gameWindow.style.visibility = "visible";
-              spel.style.visibility = "visible";
+              gameWindow.style.display = "flex";
+              spel.style.display = "initial";
+              chatScreen.style.display = "flex";
               const payLoad = {
                 method: "join",
                 clientId: clientId,
@@ -202,9 +208,9 @@
             g.append(i);
             g.append(b);
             gamesList.append(g);
-            if(gamesList.firstChild){
-              btnCreate.disabled= true
-              txtGameId.disabled = true
+            if (gamesList.firstChild) {
+              btnCreate.disabled = true;
+              txtGameId.disabled = true;
             }
           }
 
@@ -247,12 +253,13 @@
             b.addEventListener("click", (e) => {
               let clientName = i.value;
               if (clientName === "") {
-                clientName = clientId;
+                clientName = clientId.substr(0, 8);
               }
               while (menuDiv.firstChild) {
                 menuDiv.removeChild(menuDiv.firstChild);
               }
-              gameWindow.style.visibility = "visible";
+              gameWindow.style.display = "flex";
+              chatScreen.style.display = "flex";
               const payLoad = {
                 method: "join",
                 clientId: clientId,
@@ -264,9 +271,9 @@
             g.append(i);
             g.append(b);
             gamesList.append(g);
-            if(gamesList.firstChild){
-              btnCreate.disabled= true
-              txtGameId.disabled = true
+            if (gamesList.firstChild) {
+              btnCreate.disabled = true;
+              txtGameId.disabled = true;
             }
           }
           console.log("game successfully created with id " + response.game.id);
@@ -275,20 +282,21 @@
           while (gamesList.firstChild) {
             gamesList.removeChild(gamesList.firstChild);
           }
-          btnCreate.disabled= false
-          txtGameId.disabled = false
+          btnCreate.disabled = false;
+          txtGameId.disabled = false;
         }
         //update
         if (response.method === "update") {
           if (!response.game.state) {
             return;
           }
-          if (endTurn) {
-            endTurn.style.display = "initial";
-          }
           if (startGame) {
             startGame.remove();
           }
+          if (endTurn) {
+            endTurn.style.display = "initial";
+          }
+          
           const currentPlayer = response.game.state["currentPlayer"];
           const diceThrown = response.game.state["diceThrown"];
           const resultaten = response.game.state["results"];
@@ -308,7 +316,7 @@
           }
           while (divPlayers.firstChild)
             divPlayers.removeChild(divPlayers.firstChild);
-          const d = document.createElement("div");
+          const d = document.createElement("span");
           d.style.width = "200px";
           d.textContent = response.game.clients.find(
             (x) => x.clientId === currentPlayer
@@ -396,7 +404,7 @@
           while (divPlayers.firstChild)
             divPlayers.removeChild(divPlayers.firstChild);
           const currentPlayer = response.game.state["currentPlayer"];
-          const d = document.createElement("div");
+          const d = document.createElement("span");
           d.style.width = "200px";
           d.textContent = response.game.clients.find(
             (x) => x.clientId === currentPlayer
@@ -409,7 +417,7 @@
           maaktegels(speeltegels);
           allButtons = document.querySelectorAll("button");
           allButtons.forEach((button) => (button.disabled = true));
-          if(clientId === currentPlayer){
+          if (clientId === currentPlayer) {
             startGame.disabled = false;
           }
           sendChat.disabled = false;
@@ -449,7 +457,7 @@
         }
         if (currentPlayer === clientId) {
           btnDice.disabled = false;
-          
+
           if (diceThrown === "yes") {
             btnDice.disabled = true;
             endTurn.disabled = false;

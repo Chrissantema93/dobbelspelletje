@@ -50,7 +50,7 @@ wsServer.on("request", (request) => {
       currentPlayer = clientId;
       const gameId = guid();
       if (gameName === "") {
-        gameName = gameId;
+        gameName = gameId.substring(0, 8);;
       }
       games[gameId] = {
         id: gameId,
