@@ -8,61 +8,66 @@
   </head>
 
   <body>
-    <h1 id="titel">Dobbelspelletje</h1>
-    <div id="menu">
-      <label for="txtGameId">Spelnaam: </label>
-      <input type="text" id="txtGameId" />
-      <button id="btnCreate">Maak spel</button>
+    <div id="container">
+      <h1 id="titel">Dobbelspelletje</h1>
+      <div id="menu">
+        <label for="txtGameId">Spelnaam: </label>
+        <input type="text" id="txtGameId" />
+        <button id="btnCreate">Maak spel</button>
 
-      <div id="gamesList"></div>
-      <button id="closeGames">Close Games</button>
-    </div>
-    <div id="gameWindow">
-      <div id="tegels"></div>
-      <div id="spel">
-        <div id="oddPlayers">
-          <div id="player1board">
-            <label for="player1Name">Speler 1:</label>
-            <div id="player1Name"></div>
-            <div id="player1"></div>
-          </div>
+        <div id="gamesList"></div>
+        <button id="closeGames">Close Games</button>
+      </div>
+      <div id="chatScreen">
+        <div id="chat-wrapper">
+          <textarea id="chatInput" rows="2" cols="32"></textarea>
+          <span><button id="sendChat">Verstuur bericht</button></span>
+        </div>
+        <div id="chatBox"></div>
+      </div>
+      <div id="gameWindow">
+        <div id="tegels">
 
-          <!-- <div id="player3board">
+        </div>
+        <div id="spel">
+          <div id="oddPlayers">
+            <div id="player1board">
+              <label for="player1Name">Speler 1:</label>
+              <div id="player1Name"></div>
+              <div id="player1"></div>
+            </div>
+
+            <!-- <div id="player3board">
         <h4>Speler 3:</h4>
         <div id="player3Name"></div>
         <div id="player3"></div>
       </div> -->
-        </div>
-        <div id="gameScreen">
-          <label for="divPlayers">Aan de beurt:</label>
-          <span id="divPlayers"></span>
-          <button id="startGame">Start Game</button>
-          <button id="endTurn">Beëindig beurt</button>
-          <hr />
+          </div>
+          <div id="gameScreen">
+            <label for="divPlayers">Aan de beurt:</label>
+            <span id="divPlayers"></span>
+            <button id="startGame">Start Game</button>
+            <button id="endTurn">Beëindig beurt</button>
+            <hr />
 
-          <button id="btnDice">Gooi dobbelstenen</button>
-
-          <hr />
-          <div id="divBoard"></div>
-          <hr />
-          <label for="totaal">Totaal gegooide ogen: </label>
-          <span id="totaal"></span>
-          <hr />
-          <div id="selectedDice"></div>
-        </div>
-        <div id="player2board">
-          <label for="player1Name">Speler 2:</label>
-          <div id="player2Name"></div>
-          <div id="player2"></div>
+            <div id="selectedDice"></div>
+            <hr />
+            <div id="divBoard"></div>
+            <hr />
+            <label for="totaal">Totaal gegooide ogen: </label>
+            <span id="totaal"></span>
+            <hr />
+            <div id="buttonWrapper">
+              <button id="btnDice">Gooi dobbelstenen</button>
+            </div>
+          </div>
+          <div id="player2board">
+            <label for="player1Name">Speler 2:</label>
+            <div id="player2Name"></div>
+            <div id="player2"></div>
+          </div>
         </div>
       </div>
-    </div>
-    <div id='chatScreen'>
-      <div>
-      <textarea id="chatInput" rows='2' cols ='32'></textarea>
-      <span><button id="sendChat">Verstuur bericht</button></span>
-    </div>
-      <div id="chatBox"></div>
     </div>
     <script>
       //HTML elements
@@ -95,7 +100,7 @@
       const chatInput = document.getElementById("chatInput");
       const sendChat = document.getElementById("sendChat");
       const chatBox = document.getElementById("chatBox");
-      const chatScreen = document.getElementById("chatScreen")
+      const chatScreen = document.getElementById("chatScreen");
       //wiring events
 
       startGame.addEventListener("click", (e) => {
@@ -108,8 +113,8 @@
       });
 
       sendChat.addEventListener("click", (e) => {
-        const text = chatInput.value 
-        chatInput.value = ""
+        const text = chatInput.value;
+        chatInput.value = "";
         const payLoad = {
           method: "chatMessage",
           message: text,
@@ -296,7 +301,7 @@
           if (endTurn) {
             endTurn.style.display = "initial";
           }
-          
+
           const currentPlayer = response.game.state["currentPlayer"];
           const diceThrown = response.game.state["diceThrown"];
           const resultaten = response.game.state["results"];

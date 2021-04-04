@@ -394,6 +394,9 @@ function maakTegels() {
 }
 
 function changeTurn(clientId, clients) {
+  if(clients.length === 1) {
+    return clientId;
+  }
   if (clients[0].clientId === clientId) {
     return clients[1].clientId;
   } else {

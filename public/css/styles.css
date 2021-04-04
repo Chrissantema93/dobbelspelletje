@@ -1,24 +1,40 @@
 body {
-  width: 100%;
-  height: 100%;
   margin: 0;
   padding: 0;
+  height:100vh;
+  width:100vw;
+}
+#container{
+  height:100%;
+  width:100%;
 }
 #gameWindow {
   display: flex;
   flex-flow:column wrap;
-  justify-content: space-between;
+  justify-content: start;
   display: none;
-  height:100%;
+  height:79%;
+}
+
+#buttonWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #chatScreen {
   display: none;
-  border-top:1px solid gray;
-  margin-top:5px;
+  border-bottom:1px solid gray;
   flex-flow: column wrap;
+  height:20%;
 }
 
+#chat-wrapper {
+  display:flex;
+  flex-direction:row;
+  justify-content: space-around;
+  align-items:center;
+}
 #spel{
   display: flex;
   flex-direction: row;
@@ -42,6 +58,7 @@ body {
 
 #gamesList {
   margin-top: 20px;
+  margin-bottom:20px;
 }
 
 #oddPlayers{
@@ -96,10 +113,12 @@ body {
   flex-flow: row wrap;
   justify-content:space-around;
   padding: 15px;
+  height:30%;
 }
 .tegeltjes {
   height: 70px;
   width: 70px;
+  flex-basis:12.5%;
 }
 .tegeltjes:enabled{
   background-color: rgb(27, 235, 27);
@@ -118,8 +137,8 @@ body {
     flex-flow: column wrap;
   }
   .tegeltjes {
-    width: 40px;
-    height: 40px;
+    width: 10vw;
+    height: 7vh;
   }
   .dices {
     width: 50px;
@@ -128,11 +147,11 @@ body {
   }
   #tegels{
     padding: 5px;
-    min-height:90px;
+    
   }
 }
 #btnDice {
-  height: 30px;
+  height: 5vh;
 }
 textarea {
   resize: none;
@@ -140,7 +159,7 @@ textarea {
 
 #chatBox{
   overflow: scroll;
-  height:80px;
+  height:70%;
 }
 .dice_1 {
   background-image: url("../assets/dice_1.png");
