@@ -29,7 +29,9 @@ function createStartingState(clientId) {
     results: [],
     selectedResults : [],
     player1Tegels: [],
-    player2Tegels: []
+    player2Tegels: [],
+    player3Tegels: [],
+    player4Tegels: []
   };
 }
 
@@ -200,6 +202,8 @@ wsServer.on("request", (request) => {
       const beschikbareTegels = state["tegels"];
       const player1 = state["player1"];
       const player2 = state["player2"];
+      const player3 = state["player3"];
+      const player4 = state["player4"];
       const overgeblevenTegels = beschikbareTegels.filter(
         (tegel) => tegel["waarde"] !== selectedTegel["waarde"]
       );
@@ -207,8 +211,12 @@ wsServer.on("request", (request) => {
       state["tegels"] = overgeblevenTegels;
       if (player1 === clientId) {
         state["player1Tegels"].push(selectedTegel);
-      } else {
+      } else if (player2 === clientId){
         state["player2Tegels"].push(selectedTegel);
+      } else if (player3 === clientId){
+        state["player3Tegels"].push(selectedTegel);
+      } else {
+        state["player4Tegels"].push(selectedTegel);
       }
       game = games[gameId];
       state["currentPlayer"] = changeTurn(clientId, game.clients);

@@ -9,6 +9,21 @@ html, body {
 *:after {
   box-sizing: border-box;
 }
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 #container {
   height: 100%;
   width: auto;
@@ -104,6 +119,7 @@ html, body {
 #playerPart {
   flex-basis: 15%;
   flex-grow: 1;
+
 }
 
 #player1board {
@@ -154,6 +170,10 @@ html, body {
   background-size: cover;
   max-width: 12vw;
   max-height: 6vh;
+
+}
+#divBoard .dices{
+  animation: bounceIn 0.6s ease-in-out;
 }
 
 #btnDice {
@@ -167,6 +187,7 @@ textarea {
 #chatBox {
   padding: 5px;
   overflow: scroll;
+  max-height:40%;
 }
 .dice_1 {
   background-image: url("../assets/dice_1.png");

@@ -165,6 +165,14 @@
         if (response.method === "connect") {
           games = response.games;
           clientId = response.clientId;
+          // console.log('storage', sessionStorage.getItem('clientId'))
+          // if(sessionStorage.getItem('clientId') === null){
+          //   sessionStorage.setItem('clientId', clientId);
+            
+          // } else {
+          //   clientId = sessionStorage.getItem('clientId')
+          // }
+          // console.log(clientId)
           while (gamesList.firstChild) {
             gamesList.removeChild(gamesList.firstChild);
           }
@@ -383,7 +391,7 @@
             sendChat.disabled = false;
             endTurn.disabled = false;
           }
-          if(resultaten.length === 0 && number === 0) {
+          if(resultaten.length === 0 && overgebleven === 0) {
           btnDice.disabled=true;
         }
         }
@@ -401,8 +409,8 @@
           if (titel) {
             titel.remove();
           }
+          player1Name.textContent = game.clients[0].clientName;
           if (game.clients.length === 2) {
-            player1Name.textContent = game.clients[0].clientName;
             player2Name.textContent = game.clients[1].clientName;
           }
 
@@ -464,7 +472,6 @@
 
           if (diceThrown === "yes") {
             btnDice.disabled = true;
-            endTurn.disabled = false;
           } else {
             btnDice.disabled = false;
           }
