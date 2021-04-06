@@ -38,6 +38,7 @@ function createStartingState(clientId) {
 wsServer.on("request", (request) => {
   //connect
   const connection = request.accept(null, request.origin);
+  console.log(connection)
   connection.on("open", () => console.log("opened!"));
   connection.on("close", () => {
     console.log("closed!");
@@ -232,6 +233,8 @@ wsServer.on("request", (request) => {
         let player1Tegels = state["player1Tegels"];
         let player1Total = 0;
         let player2Total = 0;
+        let player3Total = 0;
+        let player4Total = 0;
         if (player1Tegels.length > 0) {
           player1Total = player1Tegels
             .map((x) => parseInt(x.punten))
@@ -243,12 +246,30 @@ wsServer.on("request", (request) => {
             .map((x) => parseInt(x.punten))
             .reduce((a, b) => a + b);
         }
-        if (player1Total > player2Total) {
+        let player3Tegels = state["player3Tegels"];
+        if (player3Tegels.length > 0) {
+          player3Total = player3Tegels
+            .map((x) => parseInt(x.punten))
+            .reduce((a, b) => a + b);
+        }
+        let player4Tegels = state["player3Tegels"];
+        if (player4Tegels.length > 0) {
+          player4Total = player4Tegels
+            .map((x) => parseInt(x.punten))
+            .reduce((a, b) => a + b);
+        }
+        if (player1Total > player2Total && player1Total > player3Total && player1Total > player4Total) {
           winnaar = game.clients.find((x) => x.clientId === player1).clientName;
           state["score"] = player1Total;
-        } else {
+        } else if (player2Total > player1Total && player2Total > player3Total && player2Total > player4Total) {
           winnaar = game.clients.find((x) => x.clientId === player2).clientName;
           state["score"] = player2Total;
+        } else if (player3Total > player1Total && player3Total > player2Total && player3Total > player4Total) {
+          winnaar = game.clients.find((x) => x.clientId === player3).clientName;
+          state["score"] = player3Total;
+        } else if (player4Total > player1Total && player4Total > player2Total && player4Total > player3Total){
+          winnaar = game.clients.find((x) => x.clientId === player4).clientName;
+          state["score"] = player4Total;
         }
 
         state["winnaar"] = winnaar;
@@ -264,14 +285,30 @@ wsServer.on("request", (request) => {
       let state = games[gameId].state;
       const player1 = state["player1"];
       const player2 = state["player2"];
+      const player3 = state["player3"];
+      const player4 = state["player4"];
       let player1Tegels = state["player1Tegels"];
       let player2Tegels = state["player2Tegels"];
+      let player3Tegels = state["player3Tegels"];
+      let player4Tegels = state["player4Tegels"];
       if (player1 === clientId) {
         player1Tegels.push(selectedTegel);
         player2Tegels = player2Tegels.filter((x) => {
           return x.waarde !== selectedTegel.waarde;
         });
       } else if (player2 === clientId) {
+        player2Tegels.push(selectedTegel);
+        player1Tegels = player1Tegels.filter((x) => {
+          return x.waarde !== selectedTegel.waarde;
+        });
+      }
+      else if (player3 === clientId) {
+        player2Tegels.push(selectedTegel);
+        player1Tegels = player1Tegels.filter((x) => {
+          return x.waarde !== selectedTegel.waarde;
+        });
+      }
+      else if (player4 === clientId) {
         player2Tegels.push(selectedTegel);
         player1Tegels = player1Tegels.filter((x) => {
           return x.waarde !== selectedTegel.waarde;
