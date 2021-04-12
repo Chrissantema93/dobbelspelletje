@@ -55,8 +55,8 @@ html, body {
   display: none;
   border-bottom: 1px solid gray;
   flex-flow: column;
-  flex-grow: 1;
   flex-basis: 20%;
+  max-height:20%;
 }
 
 #chat-wrapper {
@@ -187,7 +187,7 @@ textarea {
 #chatBox {
   padding: 5px;
   overflow: scroll;
-  max-height:40%;
+  max-height: 100%;
 }
 .dice_1 {
   background-image: url("../assets/dice_1.png");

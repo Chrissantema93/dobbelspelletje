@@ -38,7 +38,6 @@ function createStartingState(clientId) {
 wsServer.on("request", (request) => {
   //connect
   const connection = request.accept(null, request.origin);
-  console.log(connection)
   connection.on("open", () => console.log("opened!"));
   connection.on("close", () => {
     console.log("closed!");

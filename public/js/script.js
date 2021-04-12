@@ -330,7 +330,7 @@ ws.onmessage = (message) => {
   //join
   if (response.method === "join") {
     const game = response.game;
-    console.log("currentPlayer".currentPlayer);
+    // console.log("currentPlayer".currentPlayer);
     const speeltegels = response.game.state.tegels;
     const titel = document.getElementById("titel");
     if (endTurn) {
