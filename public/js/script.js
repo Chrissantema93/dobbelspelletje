@@ -159,7 +159,7 @@ ws.onmessage = (message) => {
     const g = document.createElement("div");
     g.textContent = message;
     g.style.color = color;
-    chatBox.prepend(g);
+    chatBox.append(g);
   }
   //create
   if (response.method === "create") {
@@ -316,7 +316,7 @@ ws.onmessage = (message) => {
       sendChat.disabled = false;
     }
 
-    if (ongeldigeWorp && currentPlayer === currentPlayer) {
+    if (ongeldigeWorp && currentPlayer === clientId ) {
       allButtons = document.querySelectorAll("button");
       allButtons.forEach((button) => (button.disabled = true));
       sendChat.disabled = false;

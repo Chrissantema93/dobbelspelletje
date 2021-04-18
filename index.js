@@ -23,7 +23,6 @@ function createStartingState(clientId) {
     tegels: maakTegels(),
     number: 8,
     currentPlayer: clientId,
-    gameStarted: false,
     gameOver: false,
     ongeldigeWorp: false,
     results: [],
@@ -60,6 +59,7 @@ wsServer.on("request", (request) => {
         id: gameId,
         gameName: gameName,
         gameCreatedAt: gameCreatedAt,
+        gameStarted: false,
         clients: [],
         state: createStartingState(clientId),
       };
@@ -99,8 +99,9 @@ wsServer.on("request", (request) => {
         state[`player${i}`] = game.clients[i-1].clientId;
       }
         games[gameId].state = state;
+        game['gameStarted'] = true;
         const payLoad = {
-          method: "join",
+          method: "gameStarted",
           game: game,
         };
         //loop through all clients and tell them that people has joined
@@ -152,7 +153,7 @@ wsServer.on("request", (request) => {
       const results = diceArray(number);
       
       if(selectedResults.length > 0){
-        let checker = (arr, target) => target.every(v => arr.includes(v));
+        
         state["ongeldigeWorp"] = checker(selectedResults.map(x=> x.dice), results.map(x => x.dice))
       }
       
@@ -185,6 +186,7 @@ wsServer.on("request", (request) => {
       if (selectedResults.length > 0) {
         arr = selectedResults.map((x) => parseInt(x.value));
         total = arr.reduce((a, b) => a + b);
+        state["ongeldigeWorp"] = checker(selectedResults.map(x=> x.dice), results.map(x => x.dice))
       }
       state["results"] = [];
       state["total"] = total;
@@ -415,6 +417,9 @@ function rollDice() {
   return Math.ceil(Math.random() * 6);
 }
 
+function checker(arr, target) {
+  return target.every(v => arr.includes(v));
+}
 function updateGameState() {
   //{"gameid", fasdfsf}
   for (const g of Object.keys(games)) {
