@@ -1,14 +1,22 @@
-const http = require("http");
-const express = require("express");
-const path = require("path");
+import http from 'http'
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import websocket from 'websocket';
+import Player from './classes/player.js';
+import {guid, maakTegels, diceArray, checker, changeTurn} from './helpers/helperMethods.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 9091;
 
 app.use(express.static(path.join(__dirname, "/public/")));
 app.get("/", (req, res) => res.sendFile(__dirname + "/index.html"));
 
-const websocketServer = require("websocket").server;
+const websocketServer = websocket.server;
 const httpServer = http.createServer(app);
+
 httpServer.listen(PORT, () => console.log("Listening.. on ", PORT));
 //hashmap clients
 const clients = {};
@@ -23,16 +31,14 @@ function createStartingState(clientId) {
     tegels: maakTegels(),
     number: 8,
     currentPlayer: clientId,
+    players: [],
     gameOver: false,
     ongeldigeWorp: false,
     results: [],
-    selectedResults : [],
-    player1Tegels: [],
-    player2Tegels: [],
-    player3Tegels: [],
-    player4Tegels: []
+    selectedResults: []
   };
 }
+
 
 wsServer.on("request", (request) => {
   //connect
@@ -50,10 +56,9 @@ wsServer.on("request", (request) => {
       const clientId = result.clientId;
       let gameName = result.gameName;
       let gameCreatedAt = new Date();
-      currentPlayer = clientId;
       const gameId = guid();
       if (gameName === "") {
-        gameName = gameId.substring(0, 8);;
+        gameName = gameId.substring(0, 8);
       }
       games[gameId] = {
         id: gameId,
@@ -63,7 +68,7 @@ wsServer.on("request", (request) => {
         clients: [],
         state: createStartingState(clientId),
       };
-      game = games[gameId];
+      const game = games[gameId];
       const payLoad = {
         method: "create",
         game: game,
@@ -91,24 +96,21 @@ wsServer.on("request", (request) => {
       });
     }
 
-    if(result.method === 'startGame'){
-      const gameId = result.gameId
+    if (result.method === "startGame") {
+      const gameId = result.gameId;
       let state = games[gameId].state;
       const game = games[gameId];
-      for(let i = 1; i <= game.clients.length ; i++){
-        state[`player${i}`] = game.clients[i-1].clientId;
-      }
-        games[gameId].state = state;
-        game['gameStarted'] = true;
-        const payLoad = {
-          method: "gameStarted",
-          game: game,
-        };
-        //loop through all clients and tell them that people has joined
-        game.clients.forEach((c) => {
-          clients[c.clientId].connection.send(JSON.stringify(payLoad));
-        });
-        updateGameState();
+      games[gameId].state = state;
+      game["gameStarted"] = true;
+      const payLoad = {
+        method: "gameStarted",
+        game: game,
+      };
+      //loop through all clients and tell them that people has joined
+      game.clients.forEach((c) => {
+        clients[c.clientId].connection.send(JSON.stringify(payLoad));
+      });
+      updateGameState();
     }
 
     //a client want to join
@@ -117,21 +119,23 @@ wsServer.on("request", (request) => {
       const gameId = result.gameId;
       const game = games[gameId];
       const clientName = result.clientName;
-
-      if (game.clients.length > 3) {
+      
+      if (game.clients.length > 4) {
         //sorry max players reach
         return;
-      }
+      } 
       const color = { 0: "Red", 1: "Green", 2: "Blue", 3: "Yellow" }[
         game.clients.length
       ];
+      const order = game.clients.length + 1;
+      const player = new Player(clientId, clientName, color, order)
       game.clients.push({
         clientId: clientId,
         color: color,
         clientName: clientName,
       });
+      game.state.players.push(player)
       //start the game
-      tegels = maakTegels();
       const payLoad = {
         method: "join",
         game: game,
@@ -145,21 +149,20 @@ wsServer.on("request", (request) => {
     if (result.method === "dice") {
       const gameId = result.gameId;
       let state = games[gameId].state;
-      game = games[gameId];
-
       if (!state) state = {};
-      number = state["number"];
-      const selectedResults = state["selectedResults"]
+      let number = state["number"];
+      const selectedResults = state["selectedResults"];
       const results = diceArray(number);
-      
-      if(selectedResults.length > 0){
-        
-        state["ongeldigeWorp"] = checker(selectedResults.map(x=> x.dice), results.map(x => x.dice))
+
+      if (selectedResults.length > 0) {
+        state["ongeldigeWorp"] = checker(
+          selectedResults.map((x) => x.dice),
+          results.map((x) => x.dice)
+        );
       }
-      
+
       state["results"] = results;
       state["diceThrown"] = "yes";
-      // state["availableTegels"] = maakTegels();
       games[gameId].state = state;
       updateGameState();
     }
@@ -171,7 +174,6 @@ wsServer.on("request", (request) => {
       const selectedResults = result.selectedResults;
       const number = result.number;
       let state = games[gameId].state;
-      game = games[gameId];
 
       if (!state) state = {};
       let hoeveelheid = 0;
@@ -181,12 +183,15 @@ wsServer.on("request", (request) => {
           hoeveelheid++;
         }
       }
-      overgebleven = number - hoeveelheid;
-
+      const overgebleven = number - hoeveelheid;
+      let total = 0;
       if (selectedResults.length > 0) {
-        arr = selectedResults.map((x) => parseInt(x.value));
+        let arr = selectedResults.map((x) => parseInt(x.value));
         total = arr.reduce((a, b) => a + b);
-        state["ongeldigeWorp"] = checker(selectedResults.map(x=> x.dice), results.map(x => x.dice))
+        state["ongeldigeWorp"] = checker(
+          selectedResults.map((x) => x.dice),
+          results.map((x) => x.dice)
+        );
       }
       state["results"] = [];
       state["total"] = total;
@@ -209,19 +214,14 @@ wsServer.on("request", (request) => {
       const overgeblevenTegels = beschikbareTegels.filter(
         (tegel) => tegel["waarde"] !== selectedTegel["waarde"]
       );
-
+      let players = state['players'];
+      const updatedPlayer = players.find(player => player.clientId === clientId)
+      updatedPlayer.addTegel(selectedTegel)
+      players = [...players.map(player => player.clientId === clientId ? updatedPlayer : player)]
       state["tegels"] = overgeblevenTegels;
-      if (player1 === clientId) {
-        state["player1Tegels"].push(selectedTegel);
-      } else if (player2 === clientId){
-        state["player2Tegels"].push(selectedTegel);
-      } else if (player3 === clientId){
-        state["player3Tegels"].push(selectedTegel);
-      } else {
-        state["player4Tegels"].push(selectedTegel);
-      }
-      game = games[gameId];
-      state["currentPlayer"] = changeTurn(clientId, game.clients);
+      state['players'] = players
+      // volgende speler krijgt de beurt.
+      state["currentPlayer"] = changeTurn(clientId, players);
       state["diceThrown"] = "no";
       state["results"] = [];
       state["number"] = 8;
@@ -231,48 +231,6 @@ wsServer.on("request", (request) => {
         console.log("het spel is klaar");
         state["gameOver"] = true;
         let winnaar = null;
-        let player1Tegels = state["player1Tegels"];
-        let player1Total = 0;
-        let player2Total = 0;
-        let player3Total = 0;
-        let player4Total = 0;
-        if (player1Tegels.length > 0) {
-          player1Total = player1Tegels
-            .map((x) => parseInt(x.punten))
-            .reduce((a, b) => a + b);
-        }
-        let player2Tegels = state["player2Tegels"];
-        if (player2Tegels.length > 0) {
-          player2Total = player2Tegels
-            .map((x) => parseInt(x.punten))
-            .reduce((a, b) => a + b);
-        }
-        let player3Tegels = state["player3Tegels"];
-        if (player3Tegels.length > 0) {
-          player3Total = player3Tegels
-            .map((x) => parseInt(x.punten))
-            .reduce((a, b) => a + b);
-        }
-        let player4Tegels = state["player3Tegels"];
-        if (player4Tegels.length > 0) {
-          player4Total = player4Tegels
-            .map((x) => parseInt(x.punten))
-            .reduce((a, b) => a + b);
-        }
-        if (player1Total > player2Total && player1Total > player3Total && player1Total > player4Total) {
-          winnaar = game.clients.find((x) => x.clientId === player1).clientName;
-          state["score"] = player1Total;
-        } else if (player2Total > player1Total && player2Total > player3Total && player2Total > player4Total) {
-          winnaar = game.clients.find((x) => x.clientId === player2).clientName;
-          state["score"] = player2Total;
-        } else if (player3Total > player1Total && player3Total > player2Total && player3Total > player4Total) {
-          winnaar = game.clients.find((x) => x.clientId === player3).clientName;
-          state["score"] = player3Total;
-        } else if (player4Total > player1Total && player4Total > player2Total && player4Total > player3Total){
-          winnaar = game.clients.find((x) => x.clientId === player4).clientName;
-          state["score"] = player4Total;
-        }
-
         state["winnaar"] = winnaar;
       }
       games[gameId].state = state;
@@ -284,10 +242,8 @@ wsServer.on("request", (request) => {
       const clientId = result.clientId;
       const selectedTegel = result.selectedTegel;
       let state = games[gameId].state;
-      const player1 = state["player1"];
-      const player2 = state["player2"];
-      const player3 = state["player3"];
-      const player4 = state["player4"];
+
+      const players = state["players"]
       let player1Tegels = state["player1Tegels"];
       let player2Tegels = state["player2Tegels"];
       let player3Tegels = state["player3Tegels"];
@@ -302,20 +258,18 @@ wsServer.on("request", (request) => {
         player1Tegels = player1Tegels.filter((x) => {
           return x.waarde !== selectedTegel.waarde;
         });
-      }
-      else if (player3 === clientId) {
+      } else if (player3 === clientId) {
+        player2Tegels.push(selectedTegel);
+        player1Tegels = player1Tegels.filter((x) => {
+          return x.waarde !== selectedTegel.waarde;
+        });
+      } else if (player4 === clientId) {
         player2Tegels.push(selectedTegel);
         player1Tegels = player1Tegels.filter((x) => {
           return x.waarde !== selectedTegel.waarde;
         });
       }
-      else if (player4 === clientId) {
-        player2Tegels.push(selectedTegel);
-        player1Tegels = player1Tegels.filter((x) => {
-          return x.waarde !== selectedTegel.waarde;
-        });
-      }
-      state["currentPlayer"] = changeTurn(clientId, game.clients);
+      state["currentPlayer"] = changeTurn(clientId, players);
       state["player1Tegels"] = player1Tegels;
       state["player2Tegels"] = player2Tegels;
       state["number"] = 8;
@@ -329,41 +283,41 @@ wsServer.on("request", (request) => {
 
     if (result.method === "endTurn") {
       const gameId = result.gameId;
-      game = games[gameId];
+      const game = games[gameId];
       const clientId = result.clientId;
       let state = games[gameId].state;
-      player1Tegels = state["player1Tegels"];
-      player2Tegels = state["player2Tegels"];
-      player1 = state["player1"];
-      tegels = state["tegels"];
-      if (clientId === player1) {
-        if (player1Tegels.length > 0) {
-          laatste = player1Tegels.pop();
-          player1Tegels = player1Tegels.filter((x) => x !== laatste);
-          laatsteTegel = tegels.slice(0).pop();
-          if (laatste.waarde < laatsteTegel.waarde) {
-            tegels = tegels.filter((x) => x.waarde !== laatsteTegel.waarde);
-          }
-          tegels.push(laatste);
-        }
-      } else {
-        if (player2Tegels.length > 0) {
-          laatste = player2Tegels.pop();
-          player2Tegels = player2Tegels.filter((x) => x !== laatste);
-          laatsteTegel = tegels.slice(0).pop();
-          if (laatste.waarde < laatsteTegel.waarde) {
-            tegels = tegels.filter((x) => x.waarde !== laatsteTegel.waarde);
-          }
-          tegels.push(laatste);
-        }
-      }
+      // player1Tegels = state["player1Tegels"];
+      // player2Tegels = state["player2Tegels"];
+      // player1 = state["player1"];
+      let tegels = state["tegels"];
+      const players = state['players'];
+
+      // if (clientId === player1) {
+      //   if (player1Tegels.length > 0) {
+      //     laatste = player1Tegels.pop();
+      //     player1Tegels = player1Tegels.filter((x) => x !== laatste);
+      //     laatsteTegel = tegels.slice(0).pop();
+      //     if (laatste.waarde < laatsteTegel.waarde) {
+      //       tegels = tegels.filter((x) => x.waarde !== laatsteTegel.waarde);
+      //     }
+      //     tegels.push(laatste);
+      //   }
+      // } else {
+      //   if (player2Tegels.length > 0) {
+      //     laatste = player2Tegels.pop();
+      //     player2Tegels = player2Tegels.filter((x) => x !== laatste);
+      //     laatsteTegel = tegels.slice(0).pop();
+      //     if (laatste.waarde < laatsteTegel.waarde) {
+      //       tegels = tegels.filter((x) => x.waarde !== laatsteTegel.waarde);
+      //     }
+      //     tegels.push(laatste);
+      //   }
+      // }
       tegels = tegels.slice(0).sort((a, b) => {
         return parseInt(a.waarde) < parseInt(b.waarde) ? -1 : 1;
       });
       state["tegels"] = tegels;
-      state["player1Tegels"] = player1Tegels;
-      state["player2Tegels"] = player2Tegels;
-      state["currentPlayer"] = changeTurn(clientId, game.clients);
+      state["currentPlayer"] = changeTurn(clientId, players);
       state["number"] = 8;
       state["diceThrown"] = "no";
       state["total"] = 0;
@@ -400,26 +354,6 @@ wsServer.on("request", (request) => {
   connection.send(JSON.stringify(payLoad));
 });
 
-function diceArray(number) {
-  results = [];
-  for (let i = 0; i < number; i++) {
-    x = rollDice();
-    if (x === 6) {
-      results.push({ dice: "X", value: 5 });
-    } else {
-      results.push({ dice: x, value: x });
-    }
-  }
-  return results;
-}
-
-function rollDice() {
-  return Math.ceil(Math.random() * 6);
-}
-
-function checker(arr, target) {
-  return target.every(v => arr.includes(v));
-}
 function updateGameState() {
   //{"gameid", fasdfsf}
   for (const g of Object.keys(games)) {
@@ -435,51 +369,3 @@ function updateGameState() {
   }
 }
 
-function maakTegels() {
-  results = [];
-  for (let i = 21; i <= 36; i++) {
-    if (i <= 24) {
-      punten = 1;
-    } else if (i <= 28) {
-      punten = 2;
-    } else if (i <= 32) {
-      punten = 3;
-    } else {
-      punten = 4;
-    }
-    results.push({ waarde: i, punten: punten });
-  }
-  return results;
-}
-
-function changeTurn(clientId, clients) {
-  if(clients.length === 1) {
-    return clientId;
-  }
-  if (clients[0].clientId === clientId) {
-    return clients[1].clientId;
-  } else {
-    return clients[0].clientId;
-  }
-}
-
-function S4() {
-  return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
-}
-
-// then to call it, plus stitch in '4' in the third group
-const guid = () =>
-  (
-    S4() +
-    S4() +
-    "-" +
-    S4() +
-    "-4" +
-    S4().substr(0, 3) +
-    "-" +
-    S4() +
-    "-" +
-    S4() +
-    S4() +
-    S4()
-  ).toLowerCase();

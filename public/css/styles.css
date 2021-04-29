@@ -29,7 +29,9 @@ html, body {
   width: auto;
   display: flex;
   flex-direction: column;
+  padding:0 30vw;
 }
+
 #gameWindow {
   display: flex;
   flex-flow: column;
@@ -49,6 +51,10 @@ html, body {
 
 .playerBoards {
   padding: 5px;
+  flex-basis: 20%;
+  display: flex;
+  flex-flow: column wrap;
+  flex: 1;
 }
 
 #chatScreen {
