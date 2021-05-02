@@ -1,3 +1,5 @@
+import Tegel from "./../classes/tegel.js";
+
 export function diceArray(number) {
   let results = [];
   for (let i = 0; i < number; i++) {
@@ -15,8 +17,13 @@ export function rollDice() {
   return Math.ceil(Math.random() * 6);
 }
 
-export function checker(arr, target) {
-  return target.every((v) => arr.includes(v));
+export function checker(results, selectedResults) {
+  const resultsDice = results.map((result) => result.dice);
+  const selectedResultsDice = selectedResults.map((result) => result.dice);
+  const result = resultsDice.every((dice) => {
+    return selectedResultsDice.includes(dice);
+  });
+  return result
 }
 
 export function maakTegels() {
@@ -32,7 +39,7 @@ export function maakTegels() {
     } else {
       punten = 4;
     }
-    results.push({ waarde: i, punten: punten });
+    results.push(new Tegel(i, punten));
   }
   return results;
 }
@@ -50,6 +57,25 @@ export function changeTurn(clientId, players) {
     return players.find((player) => player.playerOrder === currentTurn + 1)
       .clientId;
   }
+}
+
+export function determineTegels(total, tegels) {
+  let results = [];
+  const availableTegels = Array.from(tegels, (x) => parseInt(x.waarde));
+  if (availableTegels.includes(total)) {
+    results.push(tegels.find((tegel) => parseInt(tegel.waarde) === total));
+  } else {
+    const eerstvolgende = Math.max.apply(
+      Math,
+      availableTegels.filter((x) => x < total)
+    );
+    if (eerstvolgende > 1) {
+      results.push(
+        tegels.find((tegel) => parseInt(tegel.waarde) === eerstvolgende)
+      );
+    }
+  }
+  return results;
 }
 
 export function S4() {

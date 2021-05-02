@@ -30,6 +30,7 @@ const chatInput = document.getElementById("chatInput");
 const sendChat = document.getElementById("sendChat");
 const chatBox = document.getElementById("chatBox");
 const chatScreen = document.getElementById("chatScreen");
+const exitGame = document.getElementById("exitGame");
 //wiring events
 
 startGame.addEventListener("click", (e) => {
@@ -92,6 +93,16 @@ closeGames.addEventListener("click", (e) => {
   ws.send(JSON.stringify(payLoad));
 });
 
+exitGame.addEventListener("click", (e) => {
+  location.reload();
+  const payLoad = {
+    method: "exitGame",
+    clientId: clientId,
+    gameId: gameId
+  };
+  ws.send(JSON.stringify(payLoad));
+});
+
 ws.onmessage = (message) => {
   //message.data
   const response = JSON.parse(message.data);
@@ -113,14 +124,21 @@ ws.onmessage = (message) => {
     for (const property in games) {
       const g = document.createElement("div");
       gameId = games[property].id;
+      gameStarted = games[property].gameStarted;
       g.classList.add("games-names");
       g.textContent = games[property].gameName;
       g.value = gameId;
       const i = document.createElement("input");
       i.placeholder = "je naam";
       const b = document.createElement("button");
-      b.textContent = "Neem deel";
 
+      if (gameStarted) {
+        b.textContent = "Spel is begonnen";
+        b.disabled = true;
+        i.disabled = true;
+      } else {
+        b.textContent = "Neem deel";
+      }
       b.addEventListener("click", (e) => {
         let clientName = i.value;
         if (clientName === "") {
@@ -172,7 +190,6 @@ ws.onmessage = (message) => {
       gamesList.removeChild(gamesList.firstChild);
     }
     for (const property in games) {
-      // console.log(`${property}: ${games[property].id}`);
       const g = document.createElement("div");
       const x = document.createElement("div");
       g.classList.add("games-names");
@@ -183,7 +200,7 @@ ws.onmessage = (message) => {
       i.placeholder = "je naam";
       const b = document.createElement("button");
       b.textContent = "Neem deel";
-      const clientName = i.value;
+
       b.addEventListener("click", (e) => {
         let clientName = i.value;
         if (clientName === "") {
@@ -241,6 +258,7 @@ ws.onmessage = (message) => {
     const ongeldigeWorp = response.game.state["ongeldigeWorp"];
     overgebleven = response.game.state["number"]; //dit moet beter
     const gameOver = response.game.state["gameOver"];
+    const selectableTegels = response.game.state["selectableTegels"];
 
     if (gameOver) {
       const winnaar = response.game.state["winnaar"];
@@ -250,74 +268,39 @@ ws.onmessage = (message) => {
     while (divPlayers.firstChild) {
       divPlayers.removeChild(divPlayers.firstChild);
     }
-
     const d = document.createElement("span");
-    d.textContent = response.game.clients.find(
-      (x) => x.clientId === currentPlayer
-    ).clientName;
-    d.style.color = response.game.clients.find(
-      (x) => x.clientId === currentPlayer
-    ).color;
+    d.textContent = players.find(
+      (player) => player.clientId === currentPlayer
+    ).playerName;
+    d.style.color = players.find(
+      (player) => player.clientId === currentPlayer
+    ).playerColor;
     divPlayers.append(d);
 
+    createPlayerBoards(players)
     determinePlayer(currentPlayer, diceThrown);
     createDices(resultaten, selectedResults);
     maaktegels(overgeblevenTegels);
-    playerTegels2(players);
-    // playerTegels(player1Tegels, player2Tegels);
+    playerTegels(players);
     selectedTegels(selectedResults);
 
     btnTotal.textContent = total;
-    const availableTegels = Array.from(divTegels.children, (x) =>
-      parseInt(x.value)
-    );
-    const xGegooid = selectedResults.map((x) => x.dice).includes("X");
-    if (total >= 21 && xGegooid) {
-      if (availableTegels.includes(total)) {
-        for (tegel of divTegels.children) {
-          const tegelWaarde = parseInt(tegel.value);
-          if (total === tegelWaarde) {
-            tegel.disabled = false;
-          }
+    if (selectableTegels.length > 0 && currentPlayer === clientId) {
+      const beschikbareTegeltjes = document.querySelectorAll(".tegeltjes");
+      beschikbareTegeltjes.forEach((tegel) => {
+        if (parseInt(tegel.value) === total) {
+          tegel.disabled = false;
+        } else {
+          tegel.disabled = true;
         }
-      } else {
-        eerstvolgende = Math.max.apply(
-          Math,
-          availableTegels.filter((x) => x < total)
-        );
-        if (eerstvolgende > 1) {
-          for (tegel of divTegels.children) {
-            if (parseInt(tegel.value) === eerstvolgende) {
-              tegel.disabled = false;
-            }
-          }
-        }
-        if (
-          player1.firstChild && // todo dit aanpassen lol
-          total === parseInt(player1.firstChild.value) &&
-          currentPlayer === player2Id &&
-          diceThrown === "no"
-        ) {
-          player1.firstChild.disabled = false;
-        }
-        if (
-          player2.firstChild &&
-          total === parseInt(player2.firstChild.value) &&
-          currentPlayer === player1Id &&
-          diceThrown === "no"
-        ) {
-          player2.firstChild.disabled = false;
-        }
-      }
-    } else {
-      for (tegel of divTegels.children) {
-        tegel.disabled = true;
-      }
+      });
     }
+
     if (currentPlayer !== clientId || gameOver === true) {
       allButtons = document.querySelectorAll("button");
       allButtons.forEach((button) => (button.disabled = true));
       sendChat.disabled = false;
+      exitGame.disabled = false;
     }
 
     if (ongeldigeWorp && currentPlayer === clientId) {
@@ -325,6 +308,7 @@ ws.onmessage = (message) => {
       allButtons.forEach((button) => (button.disabled = true));
       sendChat.disabled = false;
       endTurn.disabled = false;
+      exitGame.disabled = false;
     }
     if (resultaten.length === 0 && overgebleven === 0) {
       btnDice.disabled = true;
@@ -333,8 +317,6 @@ ws.onmessage = (message) => {
 
   //join
   if (response.method === "join") {
-    const game = response.game;
-    // console.log("currentPlayer".currentPlayer);
     const speeltegels = response.game.state.tegels;
     const players = response.game.state.players;
     const titel = document.getElementById("titel");
@@ -364,30 +346,14 @@ ws.onmessage = (message) => {
       startGame.disabled = false;
     }
     sendChat.disabled = false;
+    exitGame.disabled = false;
     while (playerOdd.firstChild) {
       playerOdd.removeChild(playerOdd.firstChild);
     }
     while (playerEven.firstChild) {
       playerEven.removeChild(playerEven.firstChild);
     }
-    players.forEach((player) => {
-      const b = document.createElement("div");
-      const l = document.createElement("LABEL");
-      l.innerHTML = player.playerTag;
-      b.append(l);
-      const n = document.createElement("div");
-      n.id = `${player.playerTag}Name`;
-      n.textContent = player.playerName;
-      b.append(n);
-      const t = document.createElement("div");
-      b.append(t);
-      t.id = player.playerTag;
-      if (parseInt(player.playerOrder) % 2 === 0) {
-        playerEven.append(b);
-      } else {
-        playerOdd.append(b);
-      }
-    });
+    createPlayerBoards(players)
   }
 };
 
@@ -455,7 +421,7 @@ function createDices(resultaten, selectedResults) {
         method: "selectDice",
         clientId: clientId,
         gameId: gameId,
-        selectedValue: { dice: text, value: parseInt(waarde) },
+        selectedValue: { dice: text, waarde: parseInt(waarde) },
         results: resultaten,
         number: overgebleven,
         selectedResults: selectedResults,
@@ -466,7 +432,7 @@ function createDices(resultaten, selectedResults) {
   }
 }
 
-function playerTegels2(players) {
+function playerTegels(players) {
   players.forEach((player) => {
     const playerDiv = document.getElementById(player.playerTag);
     while (playerDiv.firstChild) {
@@ -494,49 +460,6 @@ function playerTegels2(players) {
   });
 }
 
-function playerTegels(player1Tegels, player2Tegels) {
-  player1Tegels = player1Tegels.reverse();
-  while (player1.firstChild) player1.removeChild(player1.firstChild);
-  player1Tegels.forEach((tegel) => {
-    const b = document.createElement("button");
-    waarde = tegel["waarde"];
-    b.textContent = `${tegel["waarde"]} --- ${tegel["punten"]}`;
-    b.value = waarde;
-    b.disabled = true;
-    b.classList.add("playerTegels");
-    b.addEventListener("click", (e) => {
-      const payLoad = {
-        method: "stolenTegel",
-        clientId: clientId,
-        gameId: gameId,
-        selectedTegel: tegel,
-      };
-      ws.send(JSON.stringify(payLoad));
-    });
-    player1.append(b);
-  });
-  player2Tegels = player2Tegels.reverse();
-  while (player2.firstChild) player2.removeChild(player2.firstChild);
-  player2Tegels.forEach((tegel) => {
-    const b = document.createElement("button");
-    waarde = tegel["waarde"];
-    b.textContent = `${tegel["waarde"]} --- ${tegel["punten"]}`;
-    b.value = waarde;
-    b.disabled = true;
-    b.classList.add("playerTegels");
-    b.addEventListener("click", (e) => {
-      const payLoad = {
-        method: "stolenTegel",
-        clientId: clientId,
-        gameId: gameId,
-        selectedTegel: tegel,
-      };
-      ws.send(JSON.stringify(payLoad));
-    });
-    player2.append(b);
-  });
-}
-
 function selectedTegels(selectedResults) {
   while (selectedDice.firstChild) {
     selectedDice.removeChild(selectedDice.firstChild);
@@ -544,10 +467,38 @@ function selectedTegels(selectedResults) {
   for (let i = 0; i < selectedResults?.length; i++) {
     const b = document.createElement("button");
     obje = selectedResults[i];
-    b.value = obje["value"];
+    b.value = obje["waarde"];
     b.classList.add(`dice_${obje["dice"]}`);
     b.classList.add("dices");
     b.disabled = true;
     selectedDice.append(b);
   }
+}
+
+function createPlayerBoards(players) {
+  while(playerEven.firstChild){
+    playerEven.removeChild(playerEven.firstChild)
+  }
+  while( playerOdd.firstChild){
+    playerOdd.removeChild(playerOdd.firstChild)
+  }
+  players.forEach((player) => {
+    const b = document.createElement("div");
+    const l = document.createElement("LABEL");
+    l.innerHTML = player.playerTag;
+    b.append(l);
+    const n = document.createElement("div");
+    n.id = `${player.playerTag}Name`;
+    n.textContent = player.playerName;
+    b.append(n);
+    const t = document.createElement("div");
+    b.append(t);
+    t.id = player.playerTag;
+    t.classList.add("playerTegelsContainer");
+    if (parseInt(player.playerOrder) % 2 === 0) {
+      playerEven.append(b);
+    } else {
+      playerOdd.append(b);
+    }
+  });
 }

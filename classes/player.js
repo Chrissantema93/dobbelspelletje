@@ -1,7 +1,7 @@
  export default class Player {
-    clientId = '';
-    playerName = '';
-    playerColor = '';
+    clientId = null;
+    playerName = null;
+    playerColor = null;
     playerOrder = null;
     playerTag = null;
     playerTegels = [];
@@ -19,6 +19,11 @@
         this.playerTegels = [...this.playerTegels.filter((x) => {
             return x.waarde !== tegel.waarde;
           })]
+    }
+    removeLastTegel() {
+        const lastTegel = this.playerTegels.slice(-1)[0]
+        this.playerTegels = [... this.playerTegels.splice(-1,1)]
+        return lastTegel
     }
 
 }

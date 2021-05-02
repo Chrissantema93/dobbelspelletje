@@ -55,6 +55,7 @@ html, body {
   display: flex;
   flex-flow: column wrap;
   flex: 1;
+  justify-content: space-between;
 }
 
 #chatScreen {
@@ -128,31 +129,13 @@ html, body {
 
 }
 
-#player1board {
-  color: red;
-  flex-basis: 20%;
-  display: flex;
-  flex-flow: column wrap;
-  flex: 1;
-}
-#player1 {
+.playerTegelsContainer {
   display: flex;
   flex-direction: column;
 }
 .playerTegels:first-child {
   min-height: 6vh;
   margin: 1vh 0;
-}
-#player2board {
-  color: green;
-  flex-basis: 20%;
-  display: flex;
-  flex-flow: column wrap;
-  flex: 1;
-}
-#player2 {
-  display: flex;
-  flex-direction: column;
 }
 
 #tegels {
