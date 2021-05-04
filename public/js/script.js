@@ -12,10 +12,6 @@ const txtGameId = document.getElementById("txtGameId");
 const divTegels = document.getElementById("tegels");
 const divPlayers = document.getElementById("divPlayers");
 const divBoard = document.getElementById("divBoard");
-const player1Name = document.getElementById("player1Name");
-const player2Name = document.getElementById("player2Name");
-const player1 = document.getElementById("player1");
-const player2 = document.getElementById("player2");
 const playerOdd = document.getElementById("playerBoardOdd");
 const playerEven = document.getElementById("playerBoardEven");
 const gamesList = document.getElementById("gamesList");
@@ -98,15 +94,28 @@ exitGame.addEventListener("click", (e) => {
   const payLoad = {
     method: "exitGame",
     clientId: clientId,
-    gameId: gameId
+    gameId: gameId,
   };
   ws.send(JSON.stringify(payLoad));
 });
+
 
 ws.onmessage = (message) => {
   //message.data
   const response = JSON.parse(message.data);
   //connect
+  if(response.method === 'gameStarted'){
+    const game = response.game
+    const gamesNames = document.querySelectorAll(".games-names")
+
+    gamesNames.forEach((gamesName) => {
+      if(gamesName.value === game.id) {
+         Array.from(gamesName.children).forEach((child) => child.disabled = true)
+      }
+    }
+    )
+  }
+
   if (response.method === "connect") {
     games = response.games;
     clientId = response.clientId;
@@ -126,6 +135,7 @@ ws.onmessage = (message) => {
       gameId = games[property].id;
       gameStarted = games[property].gameStarted;
       g.classList.add("games-names");
+      g.value = gameId;
       g.textContent = games[property].gameName;
       g.value = gameId;
       const i = document.createElement("input");
@@ -151,7 +161,6 @@ ws.onmessage = (message) => {
           menuDiv.remove();
         }
         gameWindow.style.display = "flex";
-        spel.style.display = "flex";
         chatScreen.style.display = "flex";
         const payLoad = {
           method: "join",
@@ -259,6 +268,7 @@ ws.onmessage = (message) => {
     overgebleven = response.game.state["number"]; //dit moet beter
     const gameOver = response.game.state["gameOver"];
     const selectableTegels = response.game.state["selectableTegels"];
+    const stealableTegel = response.game.state["stealableTegel"];
 
     if (gameOver) {
       const winnaar = response.game.state["winnaar"];
@@ -277,7 +287,7 @@ ws.onmessage = (message) => {
     ).playerColor;
     divPlayers.append(d);
 
-    createPlayerBoards(players)
+    createPlayerBoards(players);
     determinePlayer(currentPlayer, diceThrown);
     createDices(resultaten, selectedResults);
     maaktegels(overgeblevenTegels);
@@ -292,6 +302,14 @@ ws.onmessage = (message) => {
           tegel.disabled = false;
         } else {
           tegel.disabled = true;
+        }
+      });
+    }
+    if (currentPlayer === clientId) {
+      const playerTegels = document.querySelectorAll(".playerTegels");
+      playerTegels.forEach((tegel) => {
+        if (parseInt(tegel.value) === stealableTegel.waarde) {
+          tegel.disabled = false;
         }
       });
     }
@@ -353,7 +371,7 @@ ws.onmessage = (message) => {
     while (playerEven.firstChild) {
       playerEven.removeChild(playerEven.firstChild);
     }
-    createPlayerBoards(players)
+    createPlayerBoards(players);
   }
 };
 
@@ -476,11 +494,11 @@ function selectedTegels(selectedResults) {
 }
 
 function createPlayerBoards(players) {
-  while(playerEven.firstChild){
-    playerEven.removeChild(playerEven.firstChild)
+  while (playerEven.firstChild) {
+    playerEven.removeChild(playerEven.firstChild);
   }
-  while( playerOdd.firstChild){
-    playerOdd.removeChild(playerOdd.firstChild)
+  while (playerOdd.firstChild) {
+    playerOdd.removeChild(playerOdd.firstChild);
   }
   players.forEach((player) => {
     const b = document.createElement("div");

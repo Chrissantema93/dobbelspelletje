@@ -23,7 +23,7 @@ export function checker(results, selectedResults) {
   const result = resultsDice.every((dice) => {
     return selectedResultsDice.includes(dice);
   });
-  return result
+  return result;
 }
 
 export function maakTegels() {

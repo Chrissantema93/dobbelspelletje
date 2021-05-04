@@ -27,7 +27,6 @@ const httpServer = http.createServer(app);
 httpServer.listen(PORT, () => console.log("Listening.. on ", PORT));
 //hashmap clients
 const clients = {};
-const clientList = [];
 let games = {};
 const wsServer = new websocketServer({
   httpServer: httpServer,
@@ -83,8 +82,8 @@ wsServer.on("request", (request) => {
         games: games,
       };
 
-      clientList.forEach((c) => {
-        clients[c].connection.send(JSON.stringify(payLoad));
+      wsServer.connections.forEach((c) => {
+        c.send(JSON.stringify(payLoad));
       });
     }
     if (result.method === "chatMessage") {
@@ -116,6 +115,9 @@ wsServer.on("request", (request) => {
       //loop through all clients and tell them that people has joined
       game.clients.forEach((c) => {
         clients[c.clientId].connection.send(JSON.stringify(payLoad));
+      });
+      wsServer.connections.forEach((connection) => {
+        connection.send(JSON.stringify(payLoad));
       });
       updateGameState();
     }
@@ -174,7 +176,7 @@ wsServer.on("request", (request) => {
       const results = diceArray(number);
 
       if (selectedResults.length > 0) {
-        state["ongeldigeWorp"] = checker(results, selectedResults)
+        state["ongeldigeWorp"] = checker(results, selectedResults);
       }
 
       state["results"] = results;
@@ -190,10 +192,12 @@ wsServer.on("request", (request) => {
       const selectedValue = result.selectedValue;
       const selectedResults = result.selectedResults;
       const number = result.number;
+
       let state = games[gameId].state;
       let hoeveelheid = 0;
       let selectableTegels = state["selectableTegels"];
       const tegels = state["tegels"];
+      const players = state["players"];
 
       for (let i = 0; i < number; i++) {
         if (String(results[i]["dice"]) === String(selectedValue["dice"])) {
@@ -213,6 +217,12 @@ wsServer.on("request", (request) => {
       } else {
         selectableTegels = [];
       }
+
+      const stealableTegel = players.find(
+        (player) => parseInt(player.topTegel.waarde) === total
+      );
+      console.log(stealableTegel);
+      state["stealableTegel"] = stealableTegel;
       state["selectableTegels"] = selectableTegels;
       state["results"] = [];
       state["total"] = total;
@@ -269,33 +279,28 @@ wsServer.on("request", (request) => {
       let state = games[gameId].state;
 
       const players = state["players"];
-      if (player1 === clientId) {
-        player1Tegels.push(selectedTegel);
-        player2Tegels = player2Tegels.filter((x) => {
-          return x.waarde !== selectedTegel.waarde;
-        });
-      } else if (player2 === clientId) {
-        player2Tegels.push(selectedTegel);
-        player1Tegels = player1Tegels.filter((x) => {
-          return x.waarde !== selectedTegel.waarde;
-        });
-      } else if (player3 === clientId) {
-        player2Tegels.push(selectedTegel);
-        player1Tegels = player1Tegels.filter((x) => {
-          return x.waarde !== selectedTegel.waarde;
-        });
-      } else if (player4 === clientId) {
-        player2Tegels.push(selectedTegel);
-        player1Tegels = player1Tegels.filter((x) => {
-          return x.waarde !== selectedTegel.waarde;
-        });
-      }
+      const playerOwning = players.find((player) => player.ownsTegel(tegel));
+      playerOwning.removeTegel(tegel);
+      const playerStealing = players.find(
+        (player) => player.clientId === currentPlayer
+      );
+      playerStealing.addTegel(tegel);
+      players = [
+        ...players.map((player) =>
+          player.clientId === playerOwning.clientId
+            ? playerOwning
+            : player.clientId === playerStealing.clientId
+            ? playerStealing
+            : player
+        ),
+      ];
       state["currentPlayer"] = changeTurn(clientId, players);
       state["number"] = 8;
       state["total"] = 0;
       state["results"] = [];
       state["selectedResults"] = [];
       state["diceThrown"] = "no";
+      state["players"] = players;
       games[gameId].state = state;
       updateGameState();
     }
@@ -312,8 +317,10 @@ wsServer.on("request", (request) => {
         .find((player) => player.clientId === clientId)
         .removeLastTegel();
       const laatsteTegel = tegels.slice(0).pop();
-      if (laatsteTegelPlayer.waarde < laatsteTegel.waarde) {
-        tegels = tegels.filter((x) => x.waarde !== laatsteTegelPlayer.waarde);
+      if (laatsteTegel && laatsteTegelPlayer) {
+        if (laatsteTegelPlayer.waarde < laatsteTegel.waarde) {
+          tegels = tegels.filter((x) => x.waarde !== laatsteTegelPlayer.waarde);
+        }
       }
       tegels.push(laatste);
 
@@ -339,14 +346,13 @@ wsServer.on("request", (request) => {
         method: "gamesClosed",
         games: {},
       };
-      clientList.forEach((c) => {
-        clients[c].connection.send(JSON.stringify(payLoad));
+      wsServer.connections.forEach((c) => {
+        c.send(JSON.stringify(payLoad));
       });
     }
   });
 
   const clientId = guid();
-  clientList.push(clientId);
   clients[clientId] = {
     connection: connection,
   };
