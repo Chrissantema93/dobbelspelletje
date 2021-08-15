@@ -64,7 +64,7 @@ btnCreate.addEventListener("click", (e) => {
 btnDice.addEventListener("click", (e) => {
   if (gameId === null) gameId = txtGameId.value;
   const payLoad = {
-    method: "dice",
+    method: "throwDice",
     clientId: clientId,
     gameId: gameId,
   };
@@ -99,6 +99,11 @@ exitGame.addEventListener("click", (e) => {
   ws.send(JSON.stringify(payLoad));
 });
 
+
+ws.onclose = (event) => {
+  // alert('connection closed')
+  console.log(event)
+}
 
 ws.onmessage = (message) => {
   //message.data
@@ -193,7 +198,7 @@ ws.onmessage = (message) => {
   //create
   if (response.method === "create") {
     gameId = response.game.id;
-    overgebleven = response.game.number;
+    overgebleven = response.game.dicesLeft;
     games = response.games;
     while (gamesList.firstChild) {
       gamesList.removeChild(gamesList.firstChild);
@@ -260,12 +265,12 @@ ws.onmessage = (message) => {
     const currentPlayer = response.game.state["currentPlayer"];
     const diceThrown = response.game.state["diceThrown"];
     const resultaten = response.game.state["results"];
-    const selectedResults = response.game.state["selectedResults"] || [];
+    const chosenDices = response.game.state["chosenDices"] || [];
     const overgeblevenTegels = response.game.state["tegels"];
     const players = response.game.state["players"];
     const total = response.game.state["total"];
     const ongeldigeWorp = response.game.state["ongeldigeWorp"];
-    overgebleven = response.game.state["number"]; //dit moet beter
+    overgebleven = response.game.state["dicesLeft"]; //dit moet beter
     const gameOver = response.game.state["gameOver"];
     const selectableTegels = response.game.state["selectableTegels"];
     const stealableTegel = response.game.state["stealableTegel"];
@@ -289,10 +294,10 @@ ws.onmessage = (message) => {
 
     createPlayerBoards(players);
     determinePlayer(currentPlayer, diceThrown);
-    createDices(resultaten, selectedResults);
+    createDices(resultaten, chosenDices);
     maaktegels(overgeblevenTegels);
     playerTegels(players);
-    selectedTegels(selectedResults);
+    selectedTegels(chosenDices);
 
     btnTotal.textContent = total;
     if (selectableTegels.length > 0 && currentPlayer === clientId) {
@@ -305,7 +310,7 @@ ws.onmessage = (message) => {
         }
       });
     }
-    if (currentPlayer === clientId) {
+    if (currentPlayer === clientId && stealableTegel) {
       const playerTegels = document.querySelectorAll(".playerTegels");
       playerTegels.forEach((tegel) => {
         if (parseInt(tegel.value) === stealableTegel.waarde) {
@@ -409,7 +414,7 @@ function determinePlayer(currentPlayer, diceThrown) {
   if (currentPlayer === clientId) {
     btnDice.disabled = false;
 
-    if (diceThrown === "yes") {
+    if (diceThrown === true) {
       btnDice.disabled = true;
     } else {
       btnDice.disabled = false;
@@ -417,7 +422,7 @@ function determinePlayer(currentPlayer, diceThrown) {
   }
 }
 
-function createDices(resultaten, selectedResults) {
+function createDices(resultaten, chosenDices) {
   while (divBoard.firstChild) {
     divBoard.removeChild(divBoard.firstChild);
   }
@@ -431,7 +436,7 @@ function createDices(resultaten, selectedResults) {
     b.value = waarde;
     b.classList.add(`dice_${text}`);
     b.classList.add("dices");
-    if (selectedResults.map((x) => String(x.dice))?.includes(String(text))) {
+    if (chosenDices.map((x) => String(x.dice))?.includes(String(text))) {
       b.disabled = true;
     }
     b.addEventListener("click", (e) => {
@@ -439,10 +444,7 @@ function createDices(resultaten, selectedResults) {
         method: "selectDice",
         clientId: clientId,
         gameId: gameId,
-        selectedValue: { dice: text, waarde: parseInt(waarde) },
-        results: resultaten,
-        number: overgebleven,
-        selectedResults: selectedResults,
+        selectedValue: { dice: text, waarde: parseInt(waarde) }
       };
       ws.send(JSON.stringify(payLoad));
     });
@@ -478,13 +480,13 @@ function playerTegels(players) {
   });
 }
 
-function selectedTegels(selectedResults) {
+function selectedTegels(chosenDices) {
   while (selectedDice.firstChild) {
     selectedDice.removeChild(selectedDice.firstChild);
   }
-  for (let i = 0; i < selectedResults?.length; i++) {
+  for (let i = 0; i < chosenDices?.length; i++) {
     const b = document.createElement("button");
-    obje = selectedResults[i];
+    obje = chosenDices[i];
     b.value = obje["waarde"];
     b.classList.add(`dice_${obje["dice"]}`);
     b.classList.add("dices");
